@@ -1,0 +1,12 @@
+{
+ "total_usd": 0.0,
+ "total_tokens": 0,
+ "runs": [
+  {
+   "at": "2026-11-07T18:16+00:00",
+   "usd": 0.0,
+   "tokens": 0,
+   "status": "success"
+  }
+ ]
+}
