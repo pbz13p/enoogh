@@ -1,0 +1,2 @@
+{"name":"Enoogh 一诺","short_name":"Enoogh","description":"说到做到。做不到，就捐出去。","start_url":"/","display":"standalone","background_color":"#F5FAF9","theme_color":"#0E9C8C","lang":"zh-CN",
+ "icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icons/icon-1024.png","sizes":"1024x1024","type":"image/png","purpose":"any maskable"}]}

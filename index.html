@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enoogh 一诺 · 说到做到</title>
+<meta name="description" content="Enoogh 一诺：定一个计划，交一笔承诺金。做到了钱一分不少，做不到扣下的钱 100% 捐给慈善。">
+<meta name="theme-color" content="#0E9C8C">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Enoogh">
+<style>
+:root{
+  --bg:#F5FAF9; --card:#FFFFFF; --line:#E2ECEA; --ink:#12262C; --muted:#5A6B70;
+  --brand:#0E9C8C; --brand-ink:#0A7A6E; --brand-tint:#EAF6F4; --sky:#4AA3E0; --sky-tint:#EAF4FC;
+  --warn:#B86E00; --warn-tint:#FFF4E0; --bad:#C2413B; --bad-tint:#FDECEB; --good:#1F8A4C;
+  --r:16px; --shadow:0 6px 20px rgba(18,38,44,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--brand-ink)}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px calc(96px + env(safe-area-inset-bottom));position:relative}
+.top{display:flex;align-items:center;gap:10px;padding:18px 0 10px}
+.top .name{font-weight:800;font-size:18px;letter-spacing:.01em}
+.top .sub{font-size:12px;color:var(--muted)}
+.top .spacer{flex:1}
+.demo{display:flex;align-items:center;gap:6px;background:var(--sky-tint);border:1px solid #CFE5F6;border-radius:12px;padding:8px 10px;margin:4px 0 12px;font-size:13px}
+.demo b{color:#1D6FA8;white-space:nowrap}
+.demo .muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.demo .btn{white-space:nowrap;flex:none}
+.demo .spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.chip.brand{background:var(--brand-tint);color:var(--brand-ink)}
+.chip.warn{background:var(--warn-tint);color:var(--warn)}
+.chip.bad{background:var(--bad-tint);color:var(--bad)}
+.chip.sky{background:var(--sky-tint);color:#1D6FA8}
+.chip.grey{background:#EEF2F2;color:var(--muted)}
+h1{font-size:26px;line-height:1.25;margin:8px 0 6px;font-weight:800}
+h2{font-size:18px;margin:0 0 10px;font-weight:700}
+h3{font-size:15px;margin:0 0 6px;font-weight:700}
+p{margin:0 0 10px;line-height:1.6}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px;box-shadow:var(--shadow)}
+.card.tint{background:var(--brand-tint);border-color:#CDEAE5;box-shadow:none}
+.card.warnc{background:var(--warn-tint);border-color:#F3D9A8;box-shadow:none}
+.card.badc{background:var(--bad-tint);border-color:#F3C9C6;box-shadow:none}
+.row{display:flex;align-items:center;gap:10px}
+.row.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.btn{appearance:none;border:0;border-radius:14px;min-height:48px;padding:12px 18px;font-weight:700;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.primary:active{background:var(--brand-ink)}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.soft{background:var(--brand-tint);color:var(--brand-ink)}
+.btn.danger{background:#fff;border:1px solid #F3C9C6;color:var(--bad)}
+.btn.small{min-height:36px;padding:6px 12px;font-size:14px;border-radius:10px}
+.btn.block{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.opt{border:1.5px solid var(--line);border-radius:14px;padding:14px;background:#fff;cursor:pointer;text-align:left;width:100%}
+.opt.on{border-color:var(--brand);background:var(--brand-tint)}
+.opt .t{font-weight:700;margin-bottom:2px}
+.opt .d{font-size:13px;color:var(--muted);line-height:1.5}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
+input.in,select.in,textarea.in{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font-size:16px}
+textarea.in{min-height:84px;resize:vertical}
+input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
+.field{margin-bottom:14px}
+.task{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.task:first-child{border-top:0}
+.task .nm{flex:1;min-width:0}
+.task .nm .t{font-weight:600}
+.task .nm .d{font-size:12px;color:var(--muted)}
+.check{width:30px;height:30px;border-radius:9px;border:2px solid #C9D8D5;background:#fff;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
+.check.on{background:var(--brand);border-color:var(--brand)}
+.check svg{opacity:0}.check.on svg{opacity:1}
+.qty{display:flex;align-items:center;gap:6px}
+.qty input{width:64px;min-height:38px;text-align:center}
+.bar{height:10px;border-radius:99px;background:#E4EEEC;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.ring{position:relative;width:96px;height:96px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .c b{font-size:22px}
+.ring .c span{font-size:11px;color:var(--muted)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.day{border-radius:12px;padding:8px 0;text-align:center;font-size:12px;background:#F1F5F4;color:var(--muted)}
+.day b{display:block;font-size:15px;color:var(--ink);margin-top:2px}
+.day.done{background:var(--brand-tint);color:var(--brand-ink)}
+.day.miss{background:var(--bad-tint);color:var(--bad)}
+.day.excused{background:var(--sky-tint);color:#1D6FA8}
+.day.rest{background:#F6F6F2}
+.day.today{outline:2px solid var(--brand);outline-offset:-2px}
+.proof{display:flex;gap:10px;flex-wrap:wrap}
+.thumb{width:84px;height:84px;border-radius:12px;object-fit:cover;border:1px solid var(--line)}
+.upl{width:84px;height:84px;border-radius:12px;border:1.5px dashed #BCD2CE;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted);cursor:pointer;gap:4px}
+.money{font-size:30px;font-weight:800;letter-spacing:-.01em}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.kv:first-child{border-top:0}
+.kv span{color:var(--muted)}
+.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
+.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:12px;color:var(--muted);cursor:pointer;min-height:52px}
+.tab.on{color:var(--brand-ink);font-weight:700}
+.tab svg{width:24px;height:24px}
+.tip{display:flex;gap:10px;align-items:flex-start}
+.tip .ic{width:28px;height:28px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.wbar{display:grid;grid-template-columns:150px 1fr 38px;align-items:center;gap:8px;font-size:13px;margin:6px 0}
+.wbar .b{height:14px;border-radius:4px;background:#D9E3E1}
+.wbar .b.hot{background:var(--sky)}
+.steps{display:flex;gap:6px;margin:6px 0 14px}
+.steps i{flex:1;height:4px;border-radius:9px;background:#DCE7E5}
+.steps i.on{background:var(--brand)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.sheet-bg{position:fixed;inset:0;background:rgba(18,38,44,.35);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow:auto}
+.logo{flex:none}
+.rec{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--bad);display:inline-block;animation:p 1s infinite}
+@keyframes p{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+.hero-ic{width:84px;height:84px;border-radius:24px;background:var(--brand);display:flex;align-items:center;justify-content:center;margin:24px 0 8px}
+.how{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.how:first-child{border-top:0}
+.how .n{width:28px;height:28px;border-radius:50%;background:var(--brand-tint);color:var(--brand-ink);font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;font-size:14px}
+.compare td,.compare th{padding:8px 6px;border-top:1px solid var(--line);font-size:13px;text-align:left;vertical-align:top}
+.compare{border-collapse:collapse;width:100%}
+.compare th{color:var(--muted);font-weight:600}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<nav class="tabs hide" id="tabs" aria-label="主导航"><div class="in" id="tabsIn"></div></nav>
+<input type="file" id="filePhoto" accept="image/*" class="hide">
+<input type="file" id="fileAudio" accept="audio/*" class="hide">
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- constants ---------- */
+var KEY='enoogh_v1';
+var WD=['周日','周一','周二','周三','周四','周五','周六'];
+var CYCLE_DAYS=28;
+var CHARITIES=[
+  {id:'edu',name:'教育类慈善机构（待公布）',d:'帮助贫困学生读书、学英语'},
+  {id:'kids',name:'儿童类慈善机构（待公布）',d:'帮助有需要的儿童和家庭'},
+  {id:'env',name:'环保类慈善机构（待公布）',d:'植树、保护野生动物'}
+];
+var LOGO='<svg class="logo" width="34" height="34" viewBox="0 0 120 120" aria-hidden="true"><path d="M99.5 45.6 A42 42 0 1 1 74.4 20.5" fill="none" stroke="#4AA3E0" stroke-width="10" stroke-linecap="round"/><path d="M40 60 L56 76 L104 24" fill="none" stroke="#0E9C8C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var LOGO_W='<svg width="52" height="52" viewBox="0 0 120 120" aria-hidden="true"><path d="M99.5 45.6 A42 42 0 1 1 74.4 20.5" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="10" stroke-linecap="round"/><path d="M40 60 L56 76 L104 24" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var TICK='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* PTE task library: minutes per item are rough estimates for the plan-size warning */
+var PTE={
+  DI:{n:'Describe Image',u:'题',m:1.2,tip:'先概括图是什么，再说 2–3 个重点，最后一句说结论或趋势。内容分想过 1 分，必须说出关系和结论。'},
+  SGD:{n:'Summarize Group Discussion',u:'题',m:4,tip:'笔记分三栏记三个人的观点；三个人都要说到，再点出他们哪里同意、哪里不同。不用说满 2 分钟。'},
+  RS:{n:'Repeat Sentence',u:'题',m:0.35,tip:'不记笔记，听完马上跟。说得顺比说得全更重要，忘了几个词也别停。'},
+  SWT:{n:'Summarize Written Text',u:'题',m:8,tip:'只写一句话，20–35 词最好，最多 75 词。用复合句把主要意思串起来。'},
+  WE:{n:'Write Essay',u:'篇',m:20,tip:'20 分钟、200–300 词。写完留 2 分钟只查拼写和语法。'},
+  FIBD:{n:'Fill in the Blanks（下拉）',u:'题',m:1,tip:'阅读分 25% 来自这里。错题整理成固定搭配，第二天复习。'},
+  RL:{n:'Retell Lecture',u:'题',m:2,tip:'只记关键词，不写句子。复述时先说主题，再说 2–3 个要点。'},
+  RTS:{n:'Respond to a Situation',u:'题',m:1,tip:'想象你就在场，用“I”说。一开口先说你的请求，用 Could I… / Would I be able to…'},
+  FIBDD:{n:'Fill in the Blanks（拖拽）',u:'题',m:1,tip:'先通读一遍抓大意，再看空格前后的词性。'},
+  WFD:{n:'Write from Dictation',u:'题',m:0.5,tip:'每个拼对的词得 1 分。错词记本子，第二天重默。'},
+  RA:{n:'Read Aloud',u:'题',m:0.8,tip:'只占总分 4%，按意群断句，说完再停，别拖到进度条最后。'},
+  HIW:{n:'Highlight Incorrect Words',u:'题',m:1,tip:'眼睛跟着音频走，听到和文字不一样的词就点。'}
+};
+var PTE_WEIGHTS=[['Describe Image',15],['Summarize Group Discussion',9],['Repeat Sentence',7],['Summarize Written Text',7],['Write Essay',7],['Fill in the Blanks（下拉）',7],['Retell Lecture',6],['Respond to a Situation',6],['Fill in the Blanks（拖拽）',6],['Write from Dictation',5],['Read Aloud',4]];
+var PTE_TEMPLATES={
+  speaking:{label:'口语',tasks:[['DI',8],['RS',20],['RTS',2],['SGD',2]]},
+  writing:{label:'写作',tasks:[['WFD',15],['SWT',1],['DI',4],['RS',10]]},
+  reading:{label:'阅读',tasks:[['FIBD',10],['FIBDD',8],['RS',10],['DI',4]]},
+  listening:{label:'听力',tasks:[['WFD',15],['RS',20],['SGD',2],['HIW',5]]}
+};
+var GENERAL_TIPS=['把任务放在固定时间、固定地点做，减少每天的决定。','先做 2 分钟：打开就开始，往往就停不下来了。','前一天晚上把要用的东西准备好。','漏了一天不要紧，最重要的是不要连续漏两天。','完成后马上打卡，别等到睡前。'];
+
+/* ---------- state ---------- */
+var S=load();
+function blank(){return {v:1,offset:0,goal:null,draft:null,ui:{tab:'today'},history:[]};}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.v===1)return s;}catch(e){}return blank();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('手机存储空间不够，部分照片可能没保存');}}
+
+/* ---------- dates (local, with demo offset) ---------- */
+function realToday(){var d=new Date();d.setHours(0,0,0,0);return d;}
+function today(){return addDays(realToday(),S.offset);}
+function addDays(d,n){var x=new Date(d.getTime());x.setDate(x.getDate()+n);return x;}
+function key(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fromKey(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function pad(n){return n<10?'0'+n:''+n;}
+function diffDays(a,b){return Math.round((b-a)/864e5);}
+function fmt(d){return (d.getDate())+'/'+(d.getMonth()+1);}  // Australian D/M
+function fmtLong(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();}
+function money(n){return '$'+(Math.round(n*100)/100).toLocaleString('en-AU',{minimumFractionDigits:0,maximumFractionDigits:2});}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+/* ---------- goal model ---------- */
+function planFor(goal,d){ // plan in force on date d
+  var w=weekIndex(goal,d); var p=goal.plans[0].plan;
+  for(var i=0;i<goal.plans.length;i++){if(goal.plans[i].fromWeek<=w)p=goal.plans[i].plan;}
+  return p;
+}
+function weekIndex(goal,d){return Math.floor(diffDays(fromKey(goal.start),d)/7);}
+function isPracticeDay(goal,d){var p=planFor(goal,d);return p.days.indexOf(d.getDay())>=0;}
+function cycleEnd(goal){return addDays(fromKey(goal.start),CYCLE_DAYS-1);}
+function inCycle(goal,d){var i=diffDays(fromKey(goal.start),d);return i>=0&&i<CYCLE_DAYS;}
+function rec(goal,k){return goal.days[k]||(goal.days[k]={});}
+function dayStatus(goal,d){
+  var k=key(d), t=today();
+  if(!inCycle(goal,d))return 'out';
+  if(!isPracticeDay(goal,d))return 'rest';
+  var r=goal.days[k]||{};
+  if(r.done)return 'done';
+  if(r.excused)return 'excused';
+  if(diffDays(d,t)>0)return 'miss';
+  if(diffDays(d,t)===0)return 'todo';
+  return 'future';
+}
+function perMiss(goal){return goal.stake/20;}
+function practiceDaysTotal(goal){var n=0;for(var i=0;i<CYCLE_DAYS;i++){if(isPracticeDay(goal,addDays(fromKey(goal.start),i)))n++;}return n;}
+
+/* settle: misses become pending deductions; pending older than 24h are charged on Sundays (weekly batch) */
+function settle(){
+  var g=S.goal; if(!g||g.finished)return;
+  var t=today(), start=fromKey(g.start);
+  for(var i=0;i<CYCLE_DAYS;i++){
+    var d=addDays(start,i); if(diffDays(d,t)<=0)break;
+    if(dayStatus(g,d)==='miss'){
+      var k=key(d); if(!g.ledger.some(function(l){return l.day===k;})){
+        var already=g.ledger.reduce(function(s,l){return s+(l.status==='void'?0:l.amt);},0);
+        var amt=Math.max(0,Math.min(perMiss(g),g.stake-already));
+        g.ledger.push({day:k,amt:amt,status:amt>0?'pending':'void',noticed:key(addDays(d,1))});
+      }
+    }
+  }
+  // weekly batch on Sunday: charge pending items whose 24h notice has passed
+  g.ledger.forEach(function(l){
+    if(l.status!=='pending')return;
+    var nd=fromKey(l.noticed), due=nextSunday(addDays(nd,1));
+    if(diffDays(due,t)>=0){l.status='charged';l.chargedOn=key(due);}
+  });
+  if(diffDays(cycleEnd(g),t)>0 && !g.finished){
+    // final settlement: everything pending is charged at the end
+    g.ledger.forEach(function(l){if(l.status==='pending'){l.status='charged';l.chargedOn=key(addDays(cycleEnd(g),1));}});
+    g.finished=key(addDays(cycleEnd(g),1));
+  }
+  save();
+}
+function nextSunday(d){var x=new Date(d.getTime());while(x.getDay()!==0)x=addDays(x,1);return x;}
+function totals(g){
+  var charged=0,pending=0;
+  g.ledger.forEach(function(l){if(l.status==='charged')charged+=l.amt;if(l.status==='pending')pending+=l.amt;});
+  return {charged:charged,pending:pending,left:Math.max(0,g.stake-charged-pending)};
+}
+function appealsLeft(g){return g.mode==='hard'?0:Math.max(0,2-g.appealsUsed);}
+
+/* ---------- ui helpers ---------- */
+var $app=document.getElementById('app');
+function toast(msg){document.querySelectorAll('.toast').forEach(function(x){x.remove();});var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
+function sheet(html,onMount){
+  var bg=document.createElement('div');bg.className='sheet-bg';
+  bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'</div>';
+  bg.addEventListener('click',function(e){if(e.target===bg)close();});
+  function close(){bg.remove();}
+  document.body.appendChild(bg); if(onMount)onMount(bg.firstChild,close); return close;
+}
+function on(sel,ev,fn,root){(root||$app).querySelectorAll(sel).forEach(function(el){el.addEventListener(ev,fn);});}
+function top(){
+  return '<div class="top">'+LOGO+'<div><div class="name">Enoogh <span class="muted small" style="font-weight:600">一诺</span></div><div class="sub">说到做到。做不到，就捐出去。</div></div><div class="spacer"></div></div>'+
+  '<div class="demo" role="note"><b>演示版</b><span class="muted">不扣钱 · '+fmtLong(today())+'</span><div class="spacer"></div>'+
+  '<button class="btn small ghost" id="demoNext" aria-label="模拟到下一天">下一天 ▶</button></div>';
+}
+function bindTop(){
+  var b=document.getElementById('demoNext'); if(b)b.addEventListener('click',function(){S.offset++;save();settle();render();toast('已跳到 '+fmtLong(today()));});
+}
+
+/* ---------- onboarding ---------- */
+function newDraft(){return {step:0,type:null,goalName:'',pte:{now:58,target:65,exam:key(addDays(today(),42)),weak:'speaking'},days:[1,2,3,4,5,6],time:'20:00',tasks:[],stake:300,mode:'normal',pay:'card',charity:'edu',agree:{}};}
+function renderOnboard(){
+  var D=S.draft||(S.draft=newDraft());
+  var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
+  var h=top()+steps;
+  if(D.step===0)h+=stepWelcome();
+  else if(D.step===1)h+=stepType(D);
+  else if(D.step===2)h+=stepPlan(D);
+  else if(D.step===3)h+=stepStake(D);
+  else h+=stepConfirm(D);
+  $app.innerHTML=h; bindTop();
+  document.getElementById('tabs').classList.add('hide');
+  bindOnboard(D);
+}
+function stepWelcome(){
+  return '<div class="hero-ic">'+LOGO_W+'</div><h1>你知道怎么做，<br>我们让你每天真的去做。</h1>'+
+  '<p class="muted">定一个计划，交一笔承诺金。做到了，钱一分不少；做不到，扣下的钱 100% 捐给慈善机构，我们一分不拿。</p>'+
+  '<div class="card"><div class="how"><div class="n">1</div><div><b>自己定计划</b><div class="muted small">几点、做什么、做多少。我们帮你砍掉太贪的部分。</div></div></div>'+
+  '<div class="how"><div class="n">2</div><div><b>每天打卡交证据</b><div class="muted small">截图、照片或录音，小组里互相看得见。</div></div></div>'+
+  '<div class="how"><div class="n">3</div><div><b>漏一天扣一小笔，全部捐出</b><div class="muted small">扣前 24 小时通知，生病急事可以申诉。</div></div></div></div>'+
+  '<button class="btn primary block" data-next>开始定目标</button>'+
+  '<p class="small muted" style="margin-top:12px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>';
+}
+function stepType(D){
+  return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
+  '<button class="opt '+(D.type==='pte'?'on':'')+'" data-type="pte"><div class="row between"><div class="t">PTE 提分</div><span class="chip brand">推荐模板</span></div><div class="d">按你的目标分和弱项自动生成每日练习，附各题型技巧和官方资料。</div></button>'+
+  '<button class="opt '+(D.type==='custom'?'on':'')+'" data-type="custom"><div class="t">自定义目标</div><div class="d">雅思、健身、早起、读书……任务和数量你自己定。</div></button>'+
+  '</div><div class="row" style="margin-top:18px"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(D.type?'':'disabled')+'>下一步</button></div>';
+}
+function buildPteTasks(D){
+  var gap=D.pte.target-D.pte.now, f=gap<=5?0.7:1;
+  return PTE_TEMPLATES[D.pte.weak].tasks.map(function(t){var q=Math.max(1,Math.round(t[1]*f));return {code:t[0],name:PTE[t[0]].n,qty:q,unit:PTE[t[0]].u};});
+}
+function estMinutes(tasks){return Math.round(tasks.reduce(function(s,t){var m=t.code&&PTE[t.code]?PTE[t.code].m:(t.mins||0);return s+m*(t.code?t.qty:1);},0));}
+function stepPlan(D){
+  if(!D.tasks.length){D.tasks=D.type==='pte'?buildPteTasks(D):[{name:'',qty:1,unit:'次',mins:30}];}
+  var h='<h1>每天做什么？</h1><p class="muted">写具体：几点、做什么、做多少。每周日可以改，下周生效。</p>';
+  if(D.type==='pte'){
+    h+='<div class="card"><div class="grid2"><div class="field"><label class="f" for="pNow">现在最低单项分</label><input class="in" id="pNow" type="number" inputmode="numeric" min="10" max="90" value="'+D.pte.now+'"></div>'+
+    '<div class="field"><label class="f" for="pTarget">目标分</label><input class="in" id="pTarget" type="number" inputmode="numeric" min="10" max="90" value="'+D.pte.target+'"></div></div>'+
+    '<div class="field"><label class="f" for="pExam">考试日期</label><input class="in" id="pExam" type="date" value="'+D.pte.exam+'"></div>'+
+    '<div class="field" style="margin:0"><label class="f" for="pWeak">最弱的单项</label><select class="in" id="pWeak">'+Object.keys(PTE_TEMPLATES).map(function(k){return '<option value="'+k+'" '+(D.pte.weak===k?'selected':'')+'>'+PTE_TEMPLATES[k].label+'</option>';}).join('')+'</select></div>'+
+    '<p class="small muted" style="margin:10px 0 0">改了分数或弱项，下面的任务会自动重新生成。</p></div>';
+  } else {
+    h+='<div class="card"><div class="field" style="margin:0"><label class="f" for="gName">目标名称</label><input class="in" id="gName" placeholder="比如：每天健身、雅思口语" value="'+esc(D.goalName)+'"></div></div>';
+  }
+  h+='<div class="card"><h3>练习的日子</h3><div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'soft':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'">'+WD[d]+'</button>';}).join('')+'</div>'+
+  '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label><input class="in" id="pTime" type="time" value="'+D.time+'"></div></div>';
+  h+='<div class="card"><div class="row between"><h3 style="margin:0">每天的任务</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
+  D.tasks.map(function(t,i){
+    return '<div class="task"><div class="nm">'+(t.code?'<div class="t">'+esc(t.name)+'</div>':'<input class="in" data-tname="'+i+'" placeholder="任务名称" value="'+esc(t.name)+'" style="min-height:40px">')+
+    (t.code?'':'<div class="d" style="margin-top:6px">每次约 <input class="in" data-tmins="'+i+'" type="number" inputmode="numeric" value="'+(t.mins||0)+'" style="width:64px;min-height:34px;display:inline-block;padding:4px 6px"> 分钟</div>')+'</div>'+
+    '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><span class="small muted">'+esc(t.unit)+'</span></div>'+
+    '<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button></div>';
+  }).join('')+'</div>';
+  var mins=estMinutes(D.tasks), warn='';
+  if(mins>60)warn='<div class="card warnc" style="margin:12px 0 0"><b>计划可能太满了：</b>估计每天约 '+mins+' 分钟。第一周建议控制在 30–45 分钟，做到了再加。</div>';
+  else if(D.days.length===7)warn='<div class="card warnc" style="margin:12px 0 0"><b>建议留一天休息。</b>每天都练最容易第二周就断掉。</div>';
+  h+='<p class="small muted" style="margin:10px 0 0">估计每天约 <b>'+mins+'</b> 分钟</p>'+warn+'</div>';
+  var ok=D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;});
+  h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(ok?'':'disabled')+'>下一步</button></div>';
+  return h;
+}
+function stepStake(D){
+  var tiers=[[100,'试试看'],[300,'认真'],[500,'必须做到']];
+  var h='<h1>押多少承诺金？</h1><p class="muted">一期 28 天。漏练一天扣承诺金的 1/20，最多扣完为止。全勤一分不扣。</p><div class="grid3" style="margin-bottom:12px">'+
+  tiers.map(function(t){return '<button class="opt '+(D.stake===t[0]?'on':'')+'" data-stake="'+t[0]+'" style="text-align:center"><div class="t" style="font-size:20px">$'+t[0]+'</div><div class="d">'+t[1]+'</div></button>';}).join('')+'</div>'+
+  '<p class="small muted">漏一天扣 <b>'+money(D.stake/20)+'</b>。$1,000 以上的档位会在有成功案例后开放。</p>';
+  h+='<div class="card"><h3>严格程度</h3><div class="stack">'+
+  '<button class="opt '+(D.mode==='normal'?'on':'')+'" data-mode="normal"><div class="t">普通模式</div><div class="d">每期可申诉 2 次（生病、急事），审核通过不扣钱。</div></button>'+
+  '<button class="opt '+(D.mode==='hard'?'on':'')+'" data-mode="hard"><div class="t">硬核模式</div><div class="d">不能申诉。给已经下定决心的人。</div></button></div></div>';
+  h+='<div class="card"><h3>付款方式</h3><div class="stack">'+
+  '<button class="opt '+(D.pay==='card'?'on':'')+'" data-pay="card"><div class="row between"><div class="t">绑卡，漏练才扣</div><span class="chip brand">推荐</span></div><div class="d">现在只付服务费。漏练的金额每周日合并扣一次，扣前 24 小时通知你。</div></button>'+
+  '<button class="opt '+(D.pay==='prepay'?'on':'')+'" data-pay="prepay"><div class="t">预付承诺金</div><div class="d">微信支付 / 支付宝 / 银行转账先交 '+money(D.stake)+'，结营后 3 个工作日内退回剩余部分。</div></button></div></div>';
+  h+='<div class="card"><h3>扣下的钱捐给谁</h3><div class="stack">'+CHARITIES.map(function(c){return '<button class="opt '+(D.charity===c.id?'on':'')+'" data-charity="'+c.id+'"><div class="t">'+c.name+'</div><div class="d">'+c.d+'</div></button>';}).join('')+'</div><p class="small muted" style="margin:10px 0 0">每月汇总捐出一次，收据发给每个被扣款的人。</p></div>';
+  h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next>下一步</button></div>';
+  return h;
+}
+var RULES=['我已年满 18 岁。','我理解漏练一天扣承诺金的 1/20，扣下的钱全部捐给我选的慈善机构。','我理解服务费不退。','我同意在小组里公开打卡。','我理解这里不承诺考试成绩，只看我有没有按自己的计划做。'];
+function stepConfirm(D){
+  var fee=D.type==='pte'?49:29;
+  var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
+  '<div class="kv"><span>每天</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('、')+'</b></div>'+
+  '<div class="kv"><span>日子</span><b>'+[1,2,3,4,5,6,0].filter(function(d){return D.days.indexOf(d)>=0;}).map(function(d){return WD[d];}).join(' ')+' · '+D.time+'</b></div>'+
+  '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
+  '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
+  '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
+  '<div class="kv"><span>服务费</span><b>'+money(fee)+'（不退）</b></div></div>';
+  h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){return '<div class="task"><button class="check '+(D.agree[i]?'on':'')+'" data-agree="'+i+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
+  var all=RULES.every(function(r,i){return D.agree[i];});
+  h+='<div class="card tint small">演示版：点“开始”不会扣任何钱。正式版会在这一步'+(D.pay==='card'?'绑定银行卡并收取服务费':'收取服务费和预付承诺金')+'。</div>';
+  h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" id="startGoal" '+(all?'':'disabled')+'>开始第一天</button></div>';
+  return h;
+}
+function bindOnboard(D){
+  on('[data-next]','click',function(){D.step++;save();render();window.scrollTo(0,0);});
+  on('[data-back]','click',function(){D.step--;save();render();window.scrollTo(0,0);});
+  on('#whyUs','click',function(e){e.preventDefault();showCompare();});
+  on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t){D.type=t;D.tasks=[];}save();render();});
+  on('[data-day]','click',function(){var d=+this.getAttribute('data-day'),i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);save();render();});
+  on('#pTime','change',function(){D.time=this.value;save();});
+  ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
+  on('#pExam','change',function(){D.pte.exam=this.value;save();});
+  on('#pWeak','change',function(){D.pte.weak=this.value;D.tasks=buildPteTasks(D);save();render();});
+  on('#gName','input',function(){D.goalName=this.value;save();var b=$app.querySelector('[data-next]');if(b)b.disabled=!(this.value.trim()&&D.tasks.every(function(t){return t.name.trim();}));});
+  on('#addTask','click',function(){
+    if(D.type==='pte'){pickPteTask(function(code){D.tasks.push({code:code,name:PTE[code].n,qty:5,unit:PTE[code].u});save();render();});}
+    else{D.tasks.push({name:'',qty:1,unit:'次',mins:15});save();render();}
+  });
+  on('[data-tdel]','click',function(){D.tasks.splice(+this.getAttribute('data-tdel'),1);save();render();});
+  on('[data-tqty]','change',function(){D.tasks[+this.getAttribute('data-tqty')].qty=Math.max(1,+this.value||1);save();render();});
+  on('[data-tname]','change',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();render();});
+  on('[data-tmins]','change',function(){D.tasks[+this.getAttribute('data-tmins')].mins=Math.max(0,+this.value||0);save();render();});
+  on('[data-stake]','click',function(){D.stake=+this.getAttribute('data-stake');save();render();});
+  on('[data-mode]','click',function(){D.mode=this.getAttribute('data-mode');save();render();});
+  on('[data-pay]','click',function(){D.pay=this.getAttribute('data-pay');save();render();});
+  on('[data-charity]','click',function(){D.charity=this.getAttribute('data-charity');save();render();});
+  on('[data-agree]','click',function(){var i=this.getAttribute('data-agree');D.agree[i]=!D.agree[i];save();render();});
+  on('#startGoal','click',function(){
+    var plan={days:D.days.slice(),time:D.time,tasks:D.tasks.map(function(t){return {code:t.code||null,name:t.name,qty:t.qty,unit:t.unit,mins:t.mins||0};})};
+    S.goal={id:Date.now(),type:D.type,name:D.type==='pte'?'PTE 提分':D.goalName.trim(),pte:D.type==='pte'?JSON.parse(JSON.stringify(D.pte)):null,
+      start:key(today()),plans:[{fromWeek:0,plan:plan}],stake:D.stake,mode:D.mode,pay:D.pay,charity:D.charity,fee:D.type==='pte'?49:29,
+      days:{},ledger:[],appealsUsed:0,finished:null};
+    S.draft=null;S.ui.tab='today';save();render();toast('开始了！今天就是第一天');
+  });
+}
+function pickPteTask(cb){
+  var close=sheet('<h2>加一个题型</h2><div class="stack">'+Object.keys(PTE).map(function(k){return '<button class="opt" data-pick="'+k+'"><div class="t">'+PTE[k].n+'</div><div class="d">'+PTE[k].tip+'</div></button>';}).join('')+'</div>',function(el,c){
+    el.querySelectorAll('[data-pick]').forEach(function(b){b.addEventListener('click',function(){c();cb(this.getAttribute('data-pick'));});});
+  });
+}
+function showCompare(){
+  sheet('<h2>和其他承诺金 App 比</h2><p class="small muted">参考 StickK、Beeminder、Forfeit 的公开条款与说明（2026 年 11 月）。</p>'+
+  '<table class="compare"><tr><th></th><th>它们</th><th>我们</th></tr>'+
+  '<tr><td><b>扣下的钱</b></td><td>大多归平台；StickK 捐“反慈善”也留一半</td><td><b>100% 捐出，公开收据</b></td></tr>'+
+  '<tr><td><b>平台收入</b></td><td>扣下的钱 + 订阅费</td><td>只收服务费</td></tr>'+
+  '<tr><td><b>扣款</b></td><td>失败就扣</td><td>每周合并一次，扣前 24 小时通知</td></tr>'+
+  '<tr><td><b>付款方式</b></td><td>信用卡</td><td>绑卡，或微信/支付宝预付</td></tr>'+
+  '<tr><td><b>帮你做到</b></td><td>只有提醒</td><td>计划太满会提醒你、题型技巧、官方资料、小组</td></tr>'+
+  '<tr><td><b>语言</b></td><td>英文</td><td>中文</td></tr></table>'+
+  '<button class="btn primary block" style="margin-top:14px" data-close>知道了</button>',function(el,c){el.querySelector('[data-close]').addEventListener('click',c);});
+}
+
+/* ---------- main tabs ---------- */
+var TABDEF=[['today','今天','<path d="M4 12.5l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'],
+ ['plan','计划','<rect x="4" y="5" width="16" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3v4M16 3v4M4 10h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'],
+ ['money','承诺金','<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.5 0-2.6.8-2.6 2s1.1 1.6 2.6 2 2.7.8 2.7 2.1-1.2 2-2.7 2c-1.2 0-2.2-.5-2.7-1.3M12 6.5v1.5M12 16v1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'],
+ ['learn','提分','<path d="M3 9l9-4 9 4-9 4-9-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 11v4.5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V11" fill="none" stroke="currentColor" stroke-width="2"/>']];
+function renderTabs(){
+  var g=S.goal, el=document.getElementById('tabs'); el.classList.remove('hide');
+  document.getElementById('tabsIn').innerHTML=TABDEF.map(function(t){var label=t[0]==='learn'&&g.type!=='pte'?'技巧':t[1];return '<button class="tab '+(S.ui.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'" aria-current="'+(S.ui.tab===t[0]?'page':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+t[2]+'</svg>'+label+'</button>';}).join('');
+  document.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){S.ui.tab=this.getAttribute('data-tab');save();render();window.scrollTo(0,0);};});
+}
+function render(){
+  if(!S.goal){renderOnboard();return;}
+  settle();
+  if(S.goal.finished){renderFinished();return;}
+  var t=S.ui.tab, h=top();
+  if(t==='today')h+=viewToday();
+  else if(t==='plan')h+=viewPlan();
+  else if(t==='money')h+=viewMoney();
+  else h+=viewLearn();
+  $app.innerHTML=h; bindTop(); renderTabs();
+  if(t==='today')bindToday();
+  if(t==='plan')bindPlan();
+  if(t==='money')bindMoney();
+}
+
+/* today */
+function dailyTip(g,d){
+  if(g.type==='pte'){var p=planFor(g,d), codes=p.tasks.filter(function(x){return x.code;}); if(codes.length){var c=codes[diffDays(fromKey(g.start),d)%codes.length].code;return '<b>'+PTE[c].n+'：</b>'+PTE[c].tip;}}
+  return GENERAL_TIPS[Math.abs(diffDays(fromKey(g.start),d))%GENERAL_TIPS.length];
+}
+function weekStrip(g){
+  var t=today(), mon=addDays(t,-((t.getDay()+6)%7)), h='<div class="week">';
+  for(var i=0;i<7;i++){
+    var d=addDays(mon,i), st=dayStatus(g,d), cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
+    var icon={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',future:'',out:''}[st];
+    h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',future:'',out:'不在本期'}[st]||'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></div>';
+  }
+  return h+'</div>';
+}
+function cycleStats(g){
+  var t=today(),start=fromKey(g.start),done=0,due=0;
+  for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done'||st==='excused'){done++;due++;}else if(st==='miss'){due++;}else if(st==='todo'){due+=0;}}
+  return {done:done,due:due,day:diffDays(start,t)+1};
+}
+function viewToday(){
+  var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
+  var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
+  var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="#0E9C8C" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(C*rate/100)+' '+C+'"/></svg><div class="c"><b>'+rate+'%</b><span>完成率</span></div></div>'+
+  '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
+  '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+'</div>';
+  var pend=g.ledger.filter(function(l){return l.status==='pending';});
+  if(pend.length){
+    var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
+    h+='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+'（周日）合并扣款并捐出。'+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
+    (appealsLeft(g)?'<button class="btn small danger" id="appealPending">申诉（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
+  }
+  if(st==='rest'){
+    h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p></div>';
+  } else if(st==='done'){
+    h+='<div class="card tint"><h2>今天完成了 ✓</h2><p class="muted" style="margin:0">打卡时间 '+esc(r.doneAt||'')+'。明天 '+p.time+' 提醒你。</p></div>'+proofView(r);
+  } else if(st==='excused'){
+    h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
+  } else {
+    var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
+    h+='<div class="card"><div class="row between"><h2 style="margin:0">今天的任务</h2><span class="chip sky">'+p.time+' 提醒 · 23:59 截止</span></div><div style="margin-top:6px">'+
+    p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
+    h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
+    h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
+    '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
+    if(g.type==='pte'){
+      h+='<div style="margin-top:14px"><div class="rec" id="recBox">'+(r.audio?'<audio controls src="'+r.audio+'" style="max-width:100%"></audio><button class="btn small ghost" id="recAgain">重录</button>':'<button class="btn small soft" id="recStart">🎙 开始录音（30 秒）</button><button class="btn small ghost" id="audioFile">上传录音文件</button>')+'</div></div>';
+    }
+    h+='<button class="btn primary block" style="margin-top:16px" id="submitDay" '+(all&&proofOk?'':'disabled')+'>打卡完成</button>'+
+    '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all?'':'先把任务全部勾上。')+(proofOk?'':(all?'':' ')+'再交证据。')+'</p></div>';
+    if(g.mode!=='hard')h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
+  }
+  return h;
+}
+function proofView(r){
+  if(!(r.photos&&r.photos.length)&&!r.audio)return '';
+  return '<div class="card"><h3>今天的证据</h3><div class="proof">'+(r.photos||[]).map(function(src){return '<img class="thumb" src="'+src+'" alt="打卡截图">';}).join('')+'</div>'+(r.audio?'<audio controls src="'+r.audio+'" style="margin-top:10px;max-width:100%"></audio>':'')+'</div>';
+}
+var recState=null;
+function bindToday(){
+  var g=S.goal, k=key(today()), r=rec(g,k);
+  on('[data-tick]','click',function(){var i=this.getAttribute('data-tick');r.tasks=r.tasks||{};r.tasks[i]=!r.tasks[i];save();render();});
+  on('#addPhoto','click',function(){pickFile('filePhoto',function(f){compressImage(f,function(url){r.photos=(r.photos||[]).concat([url]).slice(-4);save();render();});});});
+  on('#audioFile','click',function(){pickFile('fileAudio',function(f){if(f.size>3e6){toast('录音文件太大，请录 30 秒左右');return;}var fr=new FileReader();fr.onload=function(){r.audio=fr.result;save();render();};fr.readAsDataURL(f);});});
+  on('#recAgain','click',function(){r.audio=null;save();render();});
+  on('#recStart','click',startRec);
+  on('#submitDay','click',function(){
+    var now=new Date();r.done=true;r.doneAt=pad(now.getHours())+':'+pad(now.getMinutes());save();render();toast('打卡成功！承诺金一分没少 👏');
+  });
+  on('#excuseToday','click',function(){appealSheet('today',k);});
+  on('#appealPending','click',function(){var p=g.ledger.filter(function(l){return l.status==='pending';});appealSheet('pending',p[p.length-1].day);});
+}
+function pickFile(id,cb){var el=document.getElementById(id);el.value='';el.onchange=function(){if(el.files&&el.files[0])cb(el.files[0]);};el.click();}
+function compressImage(file,cb){
+  var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var m=480,s=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7));};img.onerror=function(){toast('这张图片打不开，换一张试试');};img.src=fr.result;};fr.readAsDataURL(file);
+}
+function startRec(){
+  var box=document.getElementById('recBox');
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder)){toast('这里不能直接录音，请用“上传录音文件”');return;}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    var chunks=[],mr=new MediaRecorder(stream),left=30;
+    mr.ondataavailable=function(e){if(e.data.size)chunks.push(e.data);};
+    mr.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});clearInterval(recState&&recState.iv);recState=null;var b=new Blob(chunks,{type:mr.mimeType||'audio/webm'});var fr=new FileReader();fr.onload=function(){var r=rec(S.goal,key(today()));r.audio=fr.result;save();render();toast('录好了');};fr.readAsDataURL(b);};
+    mr.start();
+    box.innerHTML='<span class="dot" aria-hidden="true"></span><b id="recLeft">30</b><span class="small muted">秒</span><button class="btn small primary" id="recStop">录好了</button>';
+    recState={iv:setInterval(function(){left--;var el=document.getElementById('recLeft');if(el)el.textContent=left;if(left<=0&&mr.state==='recording')mr.stop();},1000)};
+    document.getElementById('recStop').onclick=function(){if(mr.state==='recording')mr.stop();};
+  }).catch(function(){toast('没有麦克风权限，请用“上传录音文件”');});
+}
+function appealSheet(kind,dayKey){
+  var g=S.goal;
+  sheet('<h2>'+(kind==='today'?'今天报备':'申诉 '+fmt(fromKey(dayKey))+' 的漏练')+'</h2><p class="small muted">本期还剩 '+appealsLeft(g)+' 次。正式版由真人审核，通常几小时内回复。</p>'+
+  '<div class="field"><label class="f" for="reason">原因</label><textarea class="in" id="reason" placeholder="比如：发烧去看医生了"></textarea></div>'+
+  '<div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="sendAppeal">提交</button></div>',function(el,close){
+    el.querySelector('[data-close]').onclick=close;
+    el.querySelector('#sendAppeal').onclick=function(){
+      var v=el.querySelector('#reason').value.trim(); if(v.length<2){toast('写一句原因');return;}
+      var r=rec(g,dayKey); r.excused=true; r.reason=v; g.appealsUsed++;
+      g.ledger.forEach(function(l){if(l.day===dayKey&&l.status==='pending')l.status='void';});
+      save(); close(); render(); toast(kind==='today'?'已报备，今天不扣钱':'申诉通过（演示），这笔不扣了');
+    };
+  });
+}
+
+/* plan */
+function viewPlan(){
+  var g=S.goal,t=today(),w=weekIndex(g,t),cur=planFor(g,t),next=g.plans.filter(function(p){return p.fromWeek>w;})[0];
+  var h='<h1>计划</h1>';
+  // weekly review on Saturday/Sunday or any time: this week's numbers
+  var mon=addDays(t,-((t.getDay()+6)%7)),done=0,miss=0,ex=0;
+  for(var i=0;i<7;i++){var d=addDays(mon,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done')done++;if(st==='miss')miss++;if(st==='excused')ex++;}
+  var isReview=t.getDay()===6||t.getDay()===0;
+  h+='<div class="card'+(isReview?' tint':'')+'"><div class="row between"><h2 style="margin:0">本周复盘</h2>'+(isReview?'<span class="chip brand">周末复盘时间</span>':'<span class="chip grey">周六晚复盘</span>')+'</div>'+
+  '<div class="grid3" style="margin-top:12px;text-align:center"><div><div class="money" style="font-size:24px">'+done+'</div><div class="small muted">完成</div></div><div><div class="money" style="font-size:24px;color:var(--bad)">'+miss+'</div><div class="small muted">漏练</div></div><div><div class="money" style="font-size:24px;color:#1D6FA8">'+ex+'</div><div class="small muted">申诉/报备</div></div></div>'+
+  (miss?'<p class="small" style="margin:12px 0 0">漏练的那天，是计划太满，还是时间不对？在下面改下周计划。</p>':'<p class="small muted" style="margin:12px 0 0">'+(done?'保持住。如果太轻松，下周可以加一点量。':'本周刚开始。')+'</p>')+'</div>';
+  h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+'</div>';
+  h+='<div class="card"><div class="row between"><h2 style="margin:0">下周计划</h2>'+(next?'<span class="chip brand">已修改，下周生效</span>':'<span class="chip grey">和本周一样</span>')+'</div>'+
+  (next?planTable(next.plan):'<p class="small muted" style="margin:8px 0 0">改计划只在下周生效。这样就不会出现“今天累了，临时少练点”。</p>')+
+  '<button class="btn soft block" style="margin-top:12px" id="editNext">修改下周计划</button></div>';
+  return h;
+}
+function planTable(p){
+  return '<div class="small muted" style="margin:6px 0">'+[1,2,3,4,5,6,0].filter(function(d){return p.days.indexOf(d)>=0;}).map(function(d){return WD[d];}).join(' ')+' · '+p.time+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
+  p.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
+}
+function bindPlan(){
+  on('#editNext','click',function(){
+    var g=S.goal,w=weekIndex(g,today()),base=JSON.parse(JSON.stringify((g.plans.filter(function(p){return p.fromWeek>w;})[0]||{plan:planFor(g,today())}).plan));
+    function body(){
+      return '<h2>修改下周计划</h2><p class="small muted">从下周（第 '+(w+2)+' 周）开始生效。</p>'+
+      base.tasks.map(function(x,i){return '<div class="task"><div class="nm"><div class="t">'+esc(x.name)+'</div></div><div class="qty"><input class="in" data-eq="'+i+'" type="number" inputmode="numeric" min="0" value="'+x.qty+'" aria-label="'+esc(x.name)+' 数量"><span class="small muted">'+esc(x.unit)+'</span></div></div>';}).join('')+
+      '<p class="small muted">数量填 0 = 下周去掉这一项。</p><div class="field"><label class="f" for="eTime">提醒时间</label><input class="in" id="eTime" type="time" value="'+base.time+'"></div>'+
+      '<div id="eWarn"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="eSave">保存</button></div>';
+    }
+    sheet(body(),function(el,close){
+      el.querySelector('[data-close]').onclick=close;
+      function warn(){var m=estMinutes(base.tasks.filter(function(x){return x.qty>0;}));el.querySelector('#eWarn').innerHTML=m>60?'<div class="card warnc small">估计每天约 '+m+' 分钟，可能太满了。</div>':'<p class="small muted">估计每天约 '+m+' 分钟</p>';}
+      warn();
+      el.querySelectorAll('[data-eq]').forEach(function(inp){inp.oninput=function(){base.tasks[+inp.getAttribute('data-eq')].qty=Math.max(0,+inp.value||0);warn();};});
+      el.querySelector('#eSave').onclick=function(){
+        base.time=el.querySelector('#eTime').value||base.time; base.tasks=base.tasks.filter(function(x){return x.qty>0;});
+        if(!base.tasks.length){toast('至少留一项任务');return;}
+        g.plans=g.plans.filter(function(p){return p.fromWeek<=w;}); g.plans.push({fromWeek:w+1,plan:base}); save(); close(); render(); toast('已保存，下周生效');
+      };
+    });
+  });
+}
+
+/* money */
+function viewMoney(){
+  var g=S.goal,T=totals(g),ch=CHARITIES.filter(function(c){return c.id===g.charity;})[0];
+  var h='<h1>承诺金</h1><div class="card"><div class="small muted">还在你这边的承诺金</div><div class="money">'+money(T.left)+'</div><div class="bar" style="margin:10px 0 4px" aria-hidden="true"><i style="width:'+(T.left/g.stake*100)+'%"></i></div><div class="small muted">共 '+money(g.stake)+' · 漏一天扣 '+money(perMiss(g))+'</div></div>';
+  h+='<div class="card"><div class="kv"><span>付款方式</span><b>'+(g.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
+  '<div class="kv"><span>模式</span><b>'+(g.mode==='hard'?'硬核':'普通 · 剩 '+appealsLeft(g)+' 次申诉')+'</b></div>'+
+  '<div class="kv"><span>已扣（将捐出）</span><b>'+money(T.charged)+'</b></div><div class="kv"><span>待扣（可申诉）</span><b>'+money(T.pending)+'</b></div>'+
+  '<div class="kv"><span>捐给</span><b>'+ch.name+'</b></div><div class="kv"><span>服务费（我们的收入）</span><b>'+money(g.fee)+'</b></div></div>';
+  h+='<div class="card"><h2>扣款记录</h2>'+(g.ledger.filter(function(l){return l.status!=='void';}).length?g.ledger.filter(function(l){return l.status!=='void';}).slice().reverse().map(function(l){return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+money(l.amt)+' <span class="chip '+(l.status==='charged'?'grey':'bad')+'">'+(l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
+  h+='<div class="card tint small"><b>钱去哪了？</b>扣下的钱每月汇总一次，100% 捐给你选的机构，收据会发给你。我们只收服务费，所以我们最希望的是你做到。</div>';
+  h+='<button class="btn danger block" id="resetAll">删除这一期（演示用）</button>';
+  return h;
+}
+function bindMoney(){on('#resetAll','click',function(){var b=this;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='再点一次确认删除';return;}S=blank();save();render();toast('已清空，重新开始');});}
+
+/* learn */
+function viewLearn(){
+  var g=S.goal;
+  if(g.type!=='pte'){return '<h1>坚持技巧</h1>'+GENERAL_TIPS.map(function(x){return '<div class="card"><div class="tip"><div class="ic">💡</div><div>'+x+'</div></div></div>';}).join('');}
+  var max=15;
+  var h='<h1>提分</h1><div class="card"><h2>时间先花在哪</h2><p class="small muted">各题型占总分的平均比重（Pearson 官方权重表，2025 年 7 月）。只用来排优先级，不能用来算分。</p>'+
+  PTE_WEIGHTS.map(function(w,i){return '<div class="wbar"><span>'+w[0]+'</span><div class="b '+(i===0?'hot':'')+'" style="width:'+(w[1]/max*100)+'%"></div><b>'+w[1]+'%</b></div>';}).join('')+'</div>';
+  h+='<div class="card"><h2>各题型技巧</h2>'+Object.keys(PTE).map(function(k){return '<div class="kv" style="display:block"><b>'+PTE[k].n+'</b><div class="small muted" style="margin-top:4px">'+PTE[k].tip+'</div></div>';}).join('')+'</div>';
+  h+='<div class="card"><h2>官方免费资料</h2>'+
+  '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/preparation/official-practice-tests" target="_blank" rel="noopener"><b>myPTE Smart Prep</b></a><div class="small muted">免费：学习计划、4 套指导练习卷、视频课、技巧文档</div></div>'+
+  '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/content/dam/ELL/pte/pearsonpte/pdfs/pte-academic-pdfs/pte-academic-speaking-test-tips.pdf" target="_blank" rel="noopener"><b>官方口语技巧 PDF</b></a><div class="small muted">7 个口语题型，含好/中/差示范</div></div>'+
+  '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/content/dam/ELL/pte/pearsonpte/articles/Test-Tips-NewSpeakingQuestions.pdf" target="_blank" rel="noopener"><b>新题型技巧 PDF</b></a><div class="small muted">2025 年 8 月新增的两个口语题</div></div>'+
+  '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/pte-academic/preparation.html" target="_blank" rel="noopener"><b>官方付费模考</b></a><div class="small muted">考前 2–3 周做一次，最接近真实分数</div></div></div>';
+  return h;
+}
+
+/* finished */
+function renderFinished(){
+  var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0;
+  for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'||st==='excused'){done++;due++;}if(st==='miss')due++;}
+  var rate=due?Math.round(done/due*100):100;
+  $app.innerHTML=top()+'<div class="hero-ic">'+LOGO_W+'</div><h1>'+(rate===100?'全勤！说到做到 🎉':'这一期结束了')+'</h1>'+
+  '<div class="card"><div class="kv"><span>完成率</span><b>'+rate+'%（'+done+'/'+due+' 天）</b></div><div class="kv"><span>'+(g.pay==='prepay'?'退回给你':'承诺金未扣')+'</span><b>'+money(g.stake-T.charged)+'</b></div><div class="kv"><span>捐给慈善</span><b>'+money(T.charged)+'</b></div></div>'+
+  (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
+  '<button class="btn primary block" id="again">再开一期</button>';
+  document.getElementById('tabs').classList.add('hide'); bindTop();
+  document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=newDraft();S.draft.step=1;save();render();};
+}
+
+render();
+})();
+</script>
+</body>
+</html>
