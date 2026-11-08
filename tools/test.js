@@ -92,6 +92,12 @@ const total = r.saved.goal.ledger.reduce((a, l) => a + (l.status === 'void' ? 0 
 ok(total <= 300 + 1e-9, '总扣款不能超过承诺金，实际 ' + total);
 ok(!!r.saved.goal.finished, '28 天后应结营');
 ok(r.html.includes('再开一期'), '结营页应能再开一期');
+ok(r.html.includes('Amaze'), '结营页应写明捐给了哪家慈善');
+ok(r.html.includes('下一期'), '完成率低时结营页应给出下一期建议');
+
+// 本周日刚合并扣款：今天页要告诉用户扣了多少、捐给了谁
+s = goal(); r = run(s, '2026-11-15');
+ok(r.html.includes('已合并扣款'), '扣款当天今天页应显示已扣款提示');
 
 // 申诉过的日子不扣钱
 s = goal(); s.goal.days['2026-11-10'] = { excused: true, reason: '发烧' }; s.goal.appealsUsed = 1;

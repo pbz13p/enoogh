@@ -479,6 +479,9 @@ function viewToday(){
   var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(cs.due?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(cs.due?C*rate/100:0)+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':'<b style="font-size:17px">第 '+Math.max(1,cs.day)+' 天</b><span>刚起步</span>')+'</div></div>'+
   '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
   '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+'</div>';
+  var just=g.ledger.filter(function(l){if(l.status!=='charged'||!l.chargedOn)return false;var a=diffDays(fromKey(l.chargedOn),t);return a>=0&&a<7;});
+  if(just.length){var jd=fromKey(just[0].chargedOn);
+    h+='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><b>'+(diffDays(jd,t)===0?'今天':fmt(jd)+'（周日）')+'已合并扣款 '+money(just.reduce(function(s,l){return s+l.amt;},0))+'</b><p class="small" style="margin:6px 0 0">'+just.length+' 天漏练，这笔钱已全部捐给 '+esc(charityName(g))+'。过去的就过去了，新的一周从今天重新开始。</p></div>';}
   var pend=g.ledger.filter(function(l){return l.status==='pending';});
   if(pend.length){
     var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
@@ -633,12 +636,19 @@ function viewLearn(){
 }
 
 /* finished */
+function charityName(g){var c=CHARITIES.filter(function(x){return x.id===g.charity;})[0]||CHARITIES[0];return c.name;}
 function renderFinished(){
-  var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0;
-  for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'||st==='excused'){done++;due++;}if(st==='miss')due++;}
-  var rate=due?Math.round(done/due*100):100;
-  $app.innerHTML=top()+'<div class="hero-ic">'+LOGO_W+'</div><h1>'+(rate===100?'全勤！说到做到 🎉':'这一期结束了')+'</h1>'+
-  '<div class="card"><div class="kv"><span>完成率</span><b>'+rate+'%（'+done+'/'+due+' 天）</b></div><div class="kv"><span>'+(g.pay==='prepay'?'退回给你':'承诺金未扣')+'</span><b>'+money(g.stake-T.charged)+'</b></div><div class="kv"><span>捐给慈善</span><b>'+money(T.charged)+'</b></div></div>'+
+  var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0,run=0,best=0;
+  for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'||st==='excused'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
+  var rate=due?Math.round(done/due*100):100, p=planFor(g,cycleEnd(g)), nd=p.days.length;
+  var title=rate===100?'全勤！说到做到 🎉':rate>=80?'做到了 '+rate+'%，很稳 👏':rate>=50?'坚持了 '+done+' 天，比开始时强':'这一期没跑顺，没关系';
+  var lead=rate>=80?'这 4 周你真的每天都在做。习惯已经开始长出来了。':rate>=50?'一半以上的日子你都做到了。下一期把计划调轻一点，会更顺。':'计划可能定得太满了。这不是你不行，是计划需要更贴合你的生活。';
+  var tip=rate>=80?'':'<div class="card tint small"><b>下一期建议</b><div style="margin-top:4px">'+(nd>3?'把每周练习从 '+nd+' 天减到 '+Math.max(3,nd-2)+' 天，':'')+'把每天的任务量减半。小一点、但每天都做到，比大计划更有用。</div></div>';
+  $app.innerHTML=top()+'<div class="hero-ic"'+(rate>=80?'':' style="background:var(--sky)"')+'>'+LOGO_W+'</div><h1 style="margin-bottom:6px">'+title+'</h1>'+
+  '<p class="muted" style="margin:0 0 14px">'+lead+'</p>'+
+  '<div class="card"><div class="kv"><span>完成率</span><b>'+rate+'%（'+done+'/'+due+' 天）</b></div><div class="kv"><span>最长连续</span><b>'+best+' 天</b></div><div class="kv"><span>'+(g.pay==='prepay'?'退回给你':'承诺金未扣')+'</span><b>'+money(g.stake-T.charged)+'</b></div><div class="kv"><span>捐给慈善</span><b>'+money(T.charged)+'</b></div></div>'+
+  (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
+  tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
   '<button class="btn primary block" id="again">再开一期</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
