@@ -62,7 +62,7 @@ function goal(extra) {
       id: 1, type: 'pte', name: 'PTE 提分', pte: { now: 58, target: 65, exam: '2026-12-20', weak: 'speaking' },
       start: '2026-11-09', plans: [{ fromWeek: 0, plan: { days: [1, 2, 3, 4, 5, 6], time: '20:00',
         tasks: [{ code: 'DI', name: 'Describe Image', qty: 8, unit: '题' }] } }],
-      stake: 300, mode: 'normal', pay: 'card', charity: 'edu', fee: 49, days: {}, ledger: [], appealsUsed: 0, finished: null
+      stake: 300, mode: 'normal', pay: 'card', charity: 'amaze', fee: 49, days: {}, ledger: [], appealsUsed: 0, finished: null
     }
   }, extra || {});
 }
@@ -97,6 +97,10 @@ ok(r.html.includes('再开一期'), '结营页应能再开一期');
 s = goal(); s.goal.days['2026-11-10'] = { excused: true, reason: '发烧' }; s.goal.appealsUsed = 1;
 r = run(s, '2026-11-11');
 ok(!r.saved.goal.ledger.some(l => l.day === '2026-11-10' && l.status !== 'void'), '申诉通过的日子不应扣款');
+
+// 旧数据里的慈善机构 id 不存在时，承诺金页也不能出错
+s = goal(); s.goal.charity = 'edu'; s.ui.tab = 'money'; r = run(s, '2026-11-12');
+ok(r.html.includes('Amaze'), '旧慈善 id 应回退到第一个机构');
 
 // 其他几个标签页能渲染
 for (const [tab, word] of [['plan', '本周复盘'], ['money', '扣款记录'], ['learn', '时间先花在哪']]) {
