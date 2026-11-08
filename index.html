@@ -102,9 +102,9 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .thumb{width:84px;height:84px;border-radius:12px;object-fit:cover;border:1px solid var(--line)}
 .upl{width:84px;height:84px;border-radius:12px;border:1.5px dashed #BCD2CE;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted);cursor:pointer;gap:4px}
 .money{font-size:30px;font-weight:800;letter-spacing:-.01em}
-.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:15px;gap:16px;align-items:baseline}
 .kv:first-child{border-top:0}
-.kv span{color:var(--muted)}
+.kv span{color:var(--muted);flex-shrink:0;white-space:nowrap}.kv b{text-align:right;font-weight:600}
 .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
 .tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 .tab{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:12px;color:var(--muted);cursor:pointer;min-height:52px}
@@ -309,7 +309,7 @@ function stepType(D){
   return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
   '<button class="opt '+(D.type==='pte'?'on':'')+'" data-type="pte"><div class="row between"><div class="t">PTE 提分</div><span class="chip brand">推荐模板</span></div><div class="d">按你的目标分和弱项自动生成每日练习，附各题型技巧和官方资料。</div></button>'+
   '<button class="opt '+(D.type==='custom'?'on':'')+'" data-type="custom"><div class="t">自定义目标</div><div class="d">雅思、健身、早起、读书……任务和数量你自己定。</div></button>'+
-  '</div><div class="row" style="margin-top:18px"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(D.type?'':'disabled')+'>下一步</button></div>';
+  '</div><div class="row" style="margin-top:18px"><button class="btn ghost" data-back>上一步</button>'+(D.type?'<button class="btn primary" style="flex:1" data-next>下一步</button>':'<p class="small muted" style="flex:1;align-self:center;margin:0">点一个开始</p>')+'</div>';
 }
 function buildPteTasks(D){
   var gap=D.pte.target-D.pte.now, f=gap<=5?0.7:1;
@@ -364,7 +364,7 @@ var RULES=['我已年满 18 岁。','我理解漏练一天扣承诺金的 1/20�
 function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
-  '<div class="kv"><span>每天</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('、')+'</b></div>'+
+  '<div class="kv"><span>每天</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('<br>')+'</b></div>'+
   '<div class="kv"><span>日子</span><b>'+[1,2,3,4,5,6,0].filter(function(d){return D.days.indexOf(d)>=0;}).map(function(d){return WD[d];}).join(' ')+' · '+D.time+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
@@ -380,7 +380,7 @@ function bindOnboard(D){
   on('[data-next]','click',function(){D.step++;save();render();window.scrollTo(0,0);});
   on('[data-back]','click',function(){D.step--;save();render();window.scrollTo(0,0);});
   on('#whyUs','click',function(e){e.preventDefault();showCompare();});
-  on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t){D.type=t;D.tasks=[];}save();render();});
+  on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t){D.type=t;D.tasks=[];}D.step=2;save();render();window.scrollTo(0,0);});
   on('[data-day]','click',function(){var d=+this.getAttribute('data-day'),i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);save();render();});
   on('#pTime','change',function(){D.time=this.value;save();});
   ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
@@ -482,7 +482,7 @@ function viewToday(){
     (appealsLeft(g)?'<button class="btn small danger" id="appealPending">申诉（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
   if(st==='rest'){
-    h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p></div>';
+    h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
   } else if(st==='done'){
     h+='<div class="card tint"><h2>今天完成了 ✓</h2><p class="muted" style="margin:0">打卡时间 '+esc(r.doneAt||'')+'。明天 '+p.time+' 提醒你。</p></div>'+proofView(r);
   } else if(st==='excused'){
