@@ -284,6 +284,16 @@ function bindTop(){
 
 /* ---------- onboarding ---------- */
 function newDraft(){return {step:0,type:null,goalName:'',pte:{now:58,target:65,exam:key(addDays(today(),42)),weak:'speaking'},days:[1,2,3,4,5,6],time:'20:00',tasks:[],stake:300,mode:'normal',pay:'card',charity:'amaze',agree:{}};}
+function nextDraft(old,rate){ // 再开一期：带上上一期计划；完成率 <80% 时按建议调轻
+  var D=newDraft(),p=old.plans[old.plans.length-1].plan,light=rate<80;
+  D.step=2;D.type=old.type;D.goalName=old.type==='pte'?'':old.name;
+  if(old.pte){D.pte=JSON.parse(JSON.stringify(old.pte));if(D.pte.exam<key(addDays(today(),7)))D.pte.exam=key(addDays(today(),42));}
+  D.days=p.days.slice();if(light&&D.days.length>3)D.days=D.days.slice(0,Math.max(3,D.days.length-2));
+  D.time=p.time;D.tasks=p.tasks.map(function(t){var c={code:t.code||null,name:t.name,qty:light?Math.max(1,Math.round(t.qty/2)):t.qty,unit:t.unit,mins:t.mins||0};if(!c.code)delete c.code;return c;});
+  D.stake=old.stake;D.mode=old.mode;D.pay=old.pay;D.charity=old.charity;D.carried=light?'light':'same';
+  return D;
+}
+if(window.__test)window.__test.nextDraft=nextDraft; // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -320,6 +330,7 @@ function estMinutes(tasks){return Math.round(tasks.reduce(function(s,t){var m=t.
 function stepPlan(D){
   if(!D.tasks.length){D.tasks=D.type==='pte'?buildPteTasks(D):[{name:'',qty:1,unit:'次',mins:30}];}
   var h='<h1>每天做什么？</h1><p class="muted">写具体：几点、做什么、做多少。每周日可以改，下周生效。</p>';
+  if(D.carried)h+='<div class="card tint small">'+(D.carried==='light'?'已带上上一期的计划，并按建议调轻：每周少练两天、每天任务量减半。觉得合适就直接下一步。':'已带上上一期的计划。觉得合适就直接下一步。')+'</div>';
   if(D.type==='pte'){
     h+='<div class="card"><div class="grid2"><div class="field"><label class="f" for="pNow">现在最低单项分</label><input class="in" id="pNow" type="number" inputmode="numeric" min="10" max="90" value="'+D.pte.now+'"></div>'+
     '<div class="field"><label class="f" for="pTarget">目标分</label><input class="in" id="pTarget" type="number" inputmode="numeric" min="10" max="90" value="'+D.pte.target+'"></div></div>'+
@@ -650,9 +661,9 @@ function renderFinished(){
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
-  '<button class="btn primary block" id="again">再开一期</button>';
+  '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
-  document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=newDraft();S.draft.step=1;save();render();};
+  document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=nextDraft(old,rate);save();render();window.scrollTo(0,0);};
 }
 
 render();

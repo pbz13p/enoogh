@@ -41,12 +41,12 @@ function run(state, todayISO) {
       getElementById: id => (id === 'app' ? app : makeEl()),
       querySelectorAll: () => [], createElement: () => makeEl(), body: makeEl()
     },
-    window: { scrollTo() {}, confirm: () => true }, navigator: {}, setTimeout() {}, setInterval() {}, clearInterval() {},
+    window: { __test: {}, scrollTo() {}, confirm: () => true }, navigator: {}, setTimeout() {}, setInterval() {}, clearInterval() {},
     Image: function () {}, console
   };
   ctx.window.document = ctx.document;
   vm.runInNewContext(code, ctx);
-  return { html: app.innerHTML, saved: store.enoogh_v1 ? JSON.parse(store.enoogh_v1) : null };
+  return { ctx, html: app.innerHTML, saved: store.enoogh_v1 ? JSON.parse(store.enoogh_v1) : null };
 }
 
 // —— 1. 新用户：欢迎页 ——
@@ -94,6 +94,13 @@ ok(!!r.saved.goal.finished, '28 天后应结营');
 ok(r.html.includes('再开一期'), '结营页应能再开一期');
 ok(r.html.includes('Amaze'), '结营页应写明捐给了哪家慈善');
 ok(r.html.includes('下一期'), '完成率低时结营页应给出下一期建议');
+// 再开一期：带上上一期计划，完成率低时自动调轻
+{ const g = r.saved.goal, nd = r.ctx.window.__test.nextDraft(g, 0);
+  ok(nd.step === 2 && nd.type === g.type && nd.charity === g.charity && nd.stake === g.stake, '再开一期应带上上一期的类型、慈善和承诺金');
+  ok(nd.days.length === Math.max(3, g.plans[0].plan.days.length - 2), '完成率低时每周天数应减两天（不少于 3 天）');
+  ok(nd.tasks.every((t, i) => t.qty === Math.max(1, Math.round(g.plans[0].plan.tasks[i].qty / 2))), '完成率低时任务量应减半');
+  const nd2 = r.ctx.window.__test.nextDraft(g, 100);
+  ok(nd2.days.length === g.plans[0].plan.days.length && nd2.tasks[0].qty === g.plans[0].plan.tasks[0].qty, '完成率高时计划原样带入'); }
 
 // 本周日刚合并扣款：今天页要告诉用户扣了多少、捐给了谁
 s = goal(); r = run(s, '2026-11-15');
