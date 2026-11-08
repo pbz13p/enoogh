@@ -97,6 +97,7 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .day.miss{background:var(--bad-tint);color:var(--bad)}
 .day.excused{background:var(--sky-tint);color:#1D6FA8}
 .day.rest{background:#F6F6F2}
+.day.out{background:transparent;border:1px dashed #DCE5E3;color:#B5C2BF}
 .day.today{outline:2px solid var(--brand);outline-offset:-2px}
 .proof{display:flex;gap:10px;flex-wrap:wrap}
 .thumb{width:84px;height:84px;border-radius:12px;object-fit:cover;border:1px solid var(--line)}
@@ -386,14 +387,17 @@ function bindOnboard(D){
   ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
   on('#pExam','change',function(){D.pte.exam=this.value;save();});
   on('#pWeak','change',function(){D.pte.weak=this.value;D.tasks=buildPteTasks(D);save();render();});
-  on('#gName','input',function(){D.goalName=this.value;save();var b=$app.querySelector('[data-next]');if(b)b.disabled=!(this.value.trim()&&D.tasks.every(function(t){return t.name.trim();}));});
+  function planOk(){return !!(D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;}));}
+  function syncNext(){var b=$app.querySelector('[data-next]');if(b&&D.step===2)b.disabled=!planOk();}
+  on('#gName','input',function(){D.goalName=this.value;save();syncNext();});
+  on('[data-tname]','input',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();syncNext();});
   on('#addTask','click',function(){
     if(D.type==='pte'){pickPteTask(function(code){D.tasks.push({code:code,name:PTE[code].n,qty:5,unit:PTE[code].u});save();render();});}
     else{D.tasks.push({name:'',qty:1,unit:'次',mins:15});save();render();}
   });
   on('[data-tdel]','click',function(){D.tasks.splice(+this.getAttribute('data-tdel'),1);save();render();});
   on('[data-tqty]','change',function(){D.tasks[+this.getAttribute('data-tqty')].qty=Math.max(1,+this.value||1);save();render();});
-  on('[data-tname]','change',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();render();});
+  on('[data-tname]','change',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();syncNext();});
   on('[data-tmins]','change',function(){D.tasks[+this.getAttribute('data-tmins')].mins=Math.max(0,+this.value||0);save();render();});
   on('[data-stake]','click',function(){D.stake=+this.getAttribute('data-stake');save();render();});
   on('[data-mode]','click',function(){D.mode=this.getAttribute('data-mode');save();render();});
@@ -458,7 +462,7 @@ function dailyTip(g,d){
 function weekStrip(g){
   var t=today(), mon=addDays(t,-((t.getDay()+6)%7)), h='<div class="week">';
   for(var i=0;i<7;i++){
-    var d=addDays(mon,i), st=dayStatus(g,d), cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
+    var d=addDays(mon,i), st=dayStatus(g,d), cls={done:'done',miss:'miss',excused:'excused',rest:'rest',out:'out'}[st]||'';
     var icon={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',future:'',out:''}[st];
     h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',future:'',out:'不在本期'}[st]||'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></div>';
   }
@@ -472,7 +476,7 @@ function cycleStats(g){
 function viewToday(){
   var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
-  var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="#0E9C8C" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(C*rate/100)+' '+C+'"/></svg><div class="c"><b>'+rate+'%</b><span>完成率</span></div></div>'+
+  var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(cs.due?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(cs.due?C*rate/100:0)+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':'<b style="font-size:17px">第 '+Math.max(1,cs.day)+' 天</b><span>刚起步</span>')+'</div></div>'+
   '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
   '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+'</div>';
   var pend=g.ledger.filter(function(l){return l.status==='pending';});
