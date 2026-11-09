@@ -294,7 +294,12 @@ function nextDraft(old,rate){ // 再开一期：带上上一期计划；完成�
   return D;
 }
 function appealDays(g){var seen={},out=[];g.ledger.forEach(function(l){if(l.status==='pending'&&!seen[l.day]){seen[l.day]=1;out.push(l);}});return out.sort(function(a,b){return a.day<b.day?1:-1;});}
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;} // 仅供 tools/test.js
+function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲做到了什么，不提“赌”
+  var t='我在 Enoogh 一诺完成了 4 周「'+g.name+'」：完成率 '+rate+'%（'+done+'/'+due+' 天），最长连续 '+best+' 天。';
+  if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
+  return t+'想要有人督促你每天做到？enoogh.com';
+}
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;window.__test.shareText=shareText;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -497,7 +502,7 @@ function viewToday(){
   var pend=g.ledger.filter(function(l){return l.status==='pending';});
   if(pend.length){
     var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
-    h+='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+'（周日）合并扣款并捐出。'+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
+    h+='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+'（周日）合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
     (appealsLeft(g)?'<button class="btn small danger" id="appealPending">'+(pend.length>1?'选一天申诉':'申诉')+'（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
   if(st==='rest'){
@@ -665,8 +670,14 @@ function renderFinished(){
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
+  '<button class="btn block" id="shareRes" style="margin-bottom:10px">分享我的成绩</button>'+
   '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
+  document.getElementById('shareRes').onclick=function(){var tx=shareText(g,rate,done,due,best,T.charged),b=this;
+    function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='分享我的成绩';},2500);}
+    if(navigator.share){navigator.share({title:'Enoogh 一诺',text:tx}).catch(function(){});}
+    else if(navigator.clipboard){navigator.clipboard.writeText(tx).then(okMsg,function(){window.prompt('复制这段文字分享：',tx);});}
+    else{window.prompt('复制这段文字分享：',tx);}};
   document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=nextDraft(old,rate);save();render();window.scrollTo(0,0);};
 }
 

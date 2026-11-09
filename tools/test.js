@@ -94,6 +94,11 @@ ok(!!r.saved.goal.finished, '28 天后应结营');
 ok(r.html.includes('再开一期'), '结营页应能再开一期');
 ok(r.html.includes('Amaze'), '结营页应写明捐给了哪家慈善');
 ok(r.html.includes('下一期'), '完成率低时结营页应给出下一期建议');
+ok(r.html.includes('分享我的成绩'), '结营页应有分享按钮');
+{ const tx = r.ctx.window.__test.shareText(r.saved.goal, 40, 8, 20, 3, 75);
+  ok(tx.includes('40%') && tx.includes('Amaze') && tx.includes('enoogh.com'), '分享文案应含完成率、慈善和网址');
+  ok(!/赌|保过/.test(tx), '分享文案不能出现“赌”“保过”');
+  ok(!r.ctx.window.__test.shareText(r.saved.goal, 100, 20, 20, 20, 0).includes('捐给'), '没扣钱时分享文案不提捐款'); }
 // 再开一期：带上上一期计划，完成率低时自动调轻
 { const g = r.saved.goal, nd = r.ctx.window.__test.nextDraft(g, 0);
   ok(nd.step === 2 && nd.type === g.type && nd.charity === g.charity && nd.stake === g.stake, '再开一期应带上上一期的类型、慈善和承诺金');
@@ -112,6 +117,12 @@ s = goal(); r = run(s, '2026-11-14');
   ok(ad.length >= 2, '漏练多天时应有多笔可申诉');
   ok(ad.every((l, i) => i === 0 || ad[i - 1].day > l.day), '可申诉的日子应按最新在前排序');
   ok(r.html.includes('选一天申诉'), '多笔待扣时按钮应提示选一天申诉'); }
+
+// 周六漏练：周日才发通知，满 24 小时后到下周日才扣，页面要说明原因
+s = goal(); r = run(s, '2026-11-15');
+{ const sat = r.saved.goal.ledger.find(l => l.day === '2026-11-14');
+  if (sat) { ok(sat.status === 'pending', '周六漏练在周日应仍是待扣（保证提前 24 小时通知）');
+    ok(r.html.includes('24 小时'), '周六漏练顺延时应说明是为了提前 24 小时通知'); } }
 
 // 申诉过的日子不扣钱
 s = goal(); s.goal.days['2026-11-10'] = { excused: true, reason: '发烧' }; s.goal.appealsUsed = 1;
