@@ -293,7 +293,8 @@ function nextDraft(old,rate){ // 再开一期：带上上一期计划；完成�
   D.stake=old.stake;D.mode=old.mode;D.pay=old.pay;D.charity=old.charity;D.carried=light?'light':'same';
   return D;
 }
-if(window.__test)window.__test.nextDraft=nextDraft; // 仅供 tools/test.js
+function appealDays(g){var seen={},out=[];g.ledger.forEach(function(l){if(l.status==='pending'&&!seen[l.day]){seen[l.day]=1;out.push(l);}});return out.sort(function(a,b){return a.day<b.day?1:-1;});}
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -497,7 +498,7 @@ function viewToday(){
   if(pend.length){
     var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
     h+='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+'（周日）合并扣款并捐出。'+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
-    (appealsLeft(g)?'<button class="btn small danger" id="appealPending">申诉（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
+    (appealsLeft(g)?'<button class="btn small danger" id="appealPending">'+(pend.length>1?'选一天申诉':'申诉')+'（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
   if(st==='rest'){
     h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
@@ -537,7 +538,7 @@ function bindToday(){
     var now=new Date();r.done=true;r.doneAt=pad(now.getHours())+':'+pad(now.getMinutes());save();render();toast('打卡成功！承诺金一分没少 👏');
   });
   on('#excuseToday','click',function(){appealSheet('today',k);});
-  on('#appealPending','click',function(){var p=g.ledger.filter(function(l){return l.status==='pending';});appealSheet('pending',p[p.length-1].day);});
+  on('#appealPending','click',function(){appealSheet('pending',appealDays(g)[0].day);});
 }
 function pickFile(id,cb){var el=document.getElementById(id);el.value='';el.onchange=function(){if(el.files&&el.files[0])cb(el.files[0]);};el.click();}
 function compressImage(file,cb){
@@ -558,10 +559,13 @@ function startRec(){
 }
 function appealSheet(kind,dayKey){
   var g=S.goal;
-  sheet('<h2>'+(kind==='today'?'今天报备':'申诉 '+fmt(fromKey(dayKey))+' 的漏练')+'</h2><p class="small muted">本期还剩 '+appealsLeft(g)+' 次。正式版由真人审核，通常几小时内回复。</p>'+
+  var opts=kind==='pending'?appealDays(g):[];
+  var pick=opts.length>1?'<div class="field"><label class="f">申诉哪一天</label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+opts.map(function(l){var d=fromKey(l.day);return '<button type="button" class="opt apd'+(l.day===dayKey?' on':'')+'" data-day="'+l.day+'" style="padding:10px 6px;text-align:center"><div class="t">'+WD[d.getDay()]+'</div><div class="d">'+fmt(d)+' · '+money(l.amt)+'</div></button>';}).join('')+'</div></div>':'';
+  sheet('<h2 id="apTitle">'+(kind==='today'?'今天报备':opts.length>1?'申诉一天漏练':'申诉 '+fmt(fromKey(dayKey))+' 的漏练')+'</h2><p class="small muted">本期还剩 '+appealsLeft(g)+' 次，每次申诉一天。正式版由真人审核，通常几小时内回复。</p>'+pick+
   '<div class="field"><label class="f" for="reason">原因</label><textarea class="in" id="reason" placeholder="比如：发烧去看医生了"></textarea></div>'+
   '<div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="sendAppeal">提交</button></div>',function(el,close){
     el.querySelector('[data-close]').onclick=close;
+    Array.prototype.forEach.call(el.querySelectorAll('.apd'),function(b){b.onclick=function(){dayKey=b.dataset.day;Array.prototype.forEach.call(el.querySelectorAll('.apd'),function(x){x.classList.toggle('on',x===b);});};});
     el.querySelector('#sendAppeal').onclick=function(){
       var v=el.querySelector('#reason').value.trim(); if(v.length<2){toast('写一句原因');return;}
       var r=rec(g,dayKey); r.excused=true; r.reason=v; g.appealsUsed++;

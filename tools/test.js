@@ -106,6 +106,13 @@ ok(r.html.includes('下一期'), '完成率低时结营页应给出下一期建�
 s = goal(); r = run(s, '2026-11-15');
 ok(r.html.includes('已合并扣款'), '扣款当天今天页应显示已扣款提示');
 
+// 多笔待扣：申诉时可选哪一天，最新的排第一，同一天不重复
+s = goal(); r = run(s, '2026-11-14');
+{ const ad = r.ctx.window.__test.appealDays(r.saved.goal);
+  ok(ad.length >= 2, '漏练多天时应有多笔可申诉');
+  ok(ad.every((l, i) => i === 0 || ad[i - 1].day > l.day), '可申诉的日子应按最新在前排序');
+  ok(r.html.includes('选一天申诉'), '多笔待扣时按钮应提示选一天申诉'); }
+
 // 申诉过的日子不扣钱
 s = goal(); s.goal.days['2026-11-10'] = { excused: true, reason: '发烧' }; s.goal.appealsUsed = 1;
 r = run(s, '2026-11-11');
