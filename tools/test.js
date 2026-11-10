@@ -148,5 +148,14 @@ ok(!r.html.includes('10/11/2026'), '不应再出现 D/M/YYYY 日期');
 s = goal(); s.goal.start = '2026-11-02'; r = run(s, '2026-11-10');
 ok(r.html.includes('已合并扣款') && r.html.indexOf('今天的任务') < r.html.indexOf('已合并扣款'), '待打卡日：今天任务应排在扣款通知前面');
 
+// 上一个练习日漏了、今天还没打卡：提示“别连漏两天”，帮他回来
+s = goal(); r = run(s, '2026-11-10');
+ok(r.html.includes('别连漏两天'), '昨天漏练、今天待打卡时应提示别连漏两天');
+ok(r.html.indexOf('别连漏两天') < r.html.indexOf('data-tick'), '回归提示应在任务勾选框之前');
+s = goal(); r = run(s, '2026-11-11');
+ok(r.html.includes('连着漏了 2 天') && !r.html.includes('别连漏两天'), '连漏两天以上时换成“今天回来最重要”的提示');
+s = goal(); s.goal.days['2026-11-10'] = { done: true }; r = run(s, '2026-11-11');
+ok(!r.html.includes('别连漏两天'), '昨天做到了就不显示回归提示');
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

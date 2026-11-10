@@ -112,6 +112,8 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .tab.on{color:var(--brand-ink);font-weight:700}
 .tab svg{width:24px;height:24px}
 .tip{display:flex;gap:10px;align-items:flex-start}
+.back{margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:#FFF7E8;border:1px solid #F6DFB3;font-size:13px;line-height:1.5;color:#6B4E16}
+.back b{display:block;font-size:14px;color:#5A3F0C;margin-bottom:2px}
 .tip .ic{width:28px;height:28px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .wbar{display:grid;grid-template-columns:150px 1fr 38px;align-items:center;gap:8px;font-size:13px;margin:6px 0}
 .wbar .b{height:14px;border-radius:4px;background:#D9E3E1}
@@ -490,6 +492,10 @@ function cycleStats(g){
   for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done'||st==='excused'){done++;due++;}else if(st==='miss'){due++;}else if(st==='todo'){due+=0;}}
   return {done:done,due:due,day:diffDays(start,t)+1};
 }
+/* 上一个练习日漏了：不责备，给一个最小的起点，帮他今天回来（“别连漏两天”） */
+function missStreak(g,t){var n=0;for(var i=1;i<=14;i++){var d=addDays(t,-i),st=dayStatus(g,d);if(st==='rest')continue;if(st==='miss')n++;else break;}return n;}
+function backNote(g,t,p){var n=missStreak(g,t);if(!n||!p.tasks.length)return '';var f=p.tasks[0];
+  return '<div class="back"><b>'+(n===1?'上次漏了没关系，别连漏两天':'已经连着漏了 '+n+' 天，今天回来最重要')+'</b><div>先只做第一项「'+esc(f.name)+' '+f.qty+' '+esc(f.unit)+'」，开了头就容易做完。</div></div>';}
 function viewToday(){
   var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
@@ -517,7 +523,7 @@ function viewToday(){
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
     h+='<div class="card"><div class="row between"><h2 style="margin:0">今天的任务</h2><span class="chip sky">'+p.time+' 提醒 · 23:59 截止</span></div><div style="margin-top:6px">'+
-    p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
+    backNote(g,t,p)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
     '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
