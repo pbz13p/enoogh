@@ -139,5 +139,14 @@ for (const [tab, word] of [['plan', '本周复盘'], ['money', '扣款记录'], 
   ok(r.html.includes(word), tab + ' 页应能渲染');
 }
 
+// 日期用中文写法，避免 10/11 被看成 10 月 11 日
+s = goal(); r = run(s, '2026-11-10');
+ok(r.html.includes('11月10日 周二'), '演示条应显示中文日期“11月10日 周二”');
+ok(!r.html.includes('10/11/2026'), '不应再出现 D/M/YYYY 日期');
+
+// 今天还没打卡时，“已合并扣款”通知放在今天任务下面，不挤占首屏
+s = goal(); s.goal.start = '2026-11-02'; r = run(s, '2026-11-10');
+ok(r.html.includes('已合并扣款') && r.html.indexOf('今天的任务') < r.html.indexOf('已合并扣款'), '待打卡日：今天任务应排在扣款通知前面');
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
