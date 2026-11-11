@@ -114,6 +114,7 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .tip{display:flex;gap:10px;align-items:flex-start}
 .back{margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:#FFF7E8;border:1px solid #F6DFB3;font-size:13px;line-height:1.5;color:#6B4E16}
 .back b{display:block;font-size:14px;color:#5A3F0C;margin-bottom:2px}
+.back.go{background:#E8F6F4;border-color:#BFE6E0;color:#24574F}.back.go b{color:#0B7A6E}
 .tip .ic{width:28px;height:28px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
 .wbar{display:grid;grid-template-columns:150px 1fr 38px;align-items:center;gap:8px;font-size:13px;margin:6px 0}
 .wbar .b{height:14px;border-radius:4px;background:#D9E3E1}
@@ -285,6 +286,13 @@ function bindTop(){
 }
 
 /* ---------- onboarding ---------- */
+function planMissing(D){var m=[];
+  if(D.type!=='pte'&&!(D.goalName||'').trim())m.push('目标名称');
+  if(!D.days.length)m.push('练习的日子');
+  if(!D.tasks.length)m.push('至少一项任务');
+  else{if(D.tasks.some(function(t){return !(t.name||'').trim();}))m.push('任务名称');
+    if(D.tasks.some(function(t){return !(t.qty>0);}))m.push('任务数量');}
+  return m;}
 function newDraft(){return {step:0,type:null,goalName:'',pte:{now:58,target:65,exam:key(addDays(today(),42)),weak:'speaking'},days:[1,2,3,4,5,6],time:'20:00',tasks:[],stake:300,mode:'normal',pay:'card',charity:'amaze',agree:{}};}
 function nextDraft(old,rate){ // 再开一期：带上上一期计划；完成率 <80% 时按建议调轻
   var D=newDraft(),p=old.plans[old.plans.length-1].plan,light=rate<80;
@@ -319,7 +327,7 @@ function stepWelcome(){
   return '<div class="hero-ic">'+LOGO_W+'</div><h1>你知道怎么做，<br>我们让你每天真的去做。</h1>'+
   '<p class="muted">定一个计划，交一笔承诺金。做到了，钱一分不少；做不到，扣下的钱 100% 捐给慈善机构，我们一分不拿。</p>'+
   '<div class="card"><div class="how"><div class="n">1</div><div><b>自己定计划</b><div class="muted small">几点、做什么、做多少。我们帮你砍掉太贪的部分。</div></div></div>'+
-  '<div class="how"><div class="n">2</div><div><b>每天打卡交证据</b><div class="muted small">截图、照片或录音，小组里互相看得见。</div></div></div>'+
+  '<div class="how"><div class="n">2</div><div><b>每天打卡交证据</b><div class="muted small">截图、照片或录音都行，留着证据，申诉时有据可查。</div></div></div>'+
   '<div class="how"><div class="n">3</div><div><b>漏一天扣一小笔，全部捐出</b><div class="muted small">扣前 24 小时通知，生病急事可以申诉。</div></div></div></div>'+
   '<button class="btn primary block" data-next>开始定目标</button>'+
   '<p class="small muted" style="margin-top:12px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>';
@@ -363,6 +371,8 @@ function stepPlan(D){
   h+='<p class="small muted" style="margin:10px 0 0">估计每天约 <b>'+mins+'</b> 分钟</p>'+warn+'</div>';
   var ok=D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;});
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(ok?'':'disabled')+'>下一步</button></div>';
+  var miss=planMissing(D);
+  h+='<p class="small muted" id="planMiss" style="text-align:right;margin:8px 2px 0;min-height:1.2em">'+(miss.length?'还差：'+miss.join('、'):'')+'</p>';
   return h;
 }
 function stepStake(D){
@@ -407,7 +417,7 @@ function bindOnboard(D){
   on('#pExam','change',function(){D.pte.exam=this.value;save();});
   on('#pWeak','change',function(){D.pte.weak=this.value;D.tasks=buildPteTasks(D);save();render();});
   function planOk(){return !!(D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;}));}
-  function syncNext(){var b=$app.querySelector('[data-next]');if(b&&D.step===2)b.disabled=!planOk();}
+  function syncNext(){var b=$app.querySelector('[data-next]');if(b&&D.step===2){b.disabled=!planOk();var m=$app.querySelector('#planMiss'),x=planMissing(D);if(m)m.textContent=x.length?'还差：'+x.join('、'):'';}}
   on('#gName','input',function(){D.goalName=this.value;save();syncNext();});
   on('[data-tname]','input',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();syncNext();});
   on('#addTask','click',function(){
@@ -494,7 +504,9 @@ function cycleStats(g){
 }
 /* 上一个练习日漏了：不责备，给一个最小的起点，帮他今天回来（“别连漏两天”） */
 function missStreak(g,t){var n=0;for(var i=1;i<=14;i++){var d=addDays(t,-i),st=dayStatus(g,d);if(st==='rest')continue;if(st==='miss')n++;else break;}return n;}
-function backNote(g,t,p){var n=missStreak(g,t);if(!n||!p.tasks.length)return '';var f=p.tasks[0];
+function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '';var f=p.tasks[0];
+  var did=p.tasks.filter(function(x,i){return r&&r.tasks&&r.tasks[i];}).length,left=p.tasks.length-did;
+  if(did)return '<div class="back go"><b>开了头，继续！</b><div>'+(left?'还剩 '+left+' 项，做完点下面「打卡完成」，今天就算回来了。':'都做完了，点下面「打卡完成」，今天就算回来了。')+'</div></div>';
   return '<div class="back"><b>'+(n===1?'上次漏了没关系，别连漏两天':'已经连着漏了 '+n+' 天，今天回来最重要')+'</b><div>先只做第一项「'+esc(f.name)+' '+f.qty+' '+esc(f.unit)+'」，开了头就容易做完。</div></div>';}
 function viewToday(){
   var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
@@ -523,7 +535,7 @@ function viewToday(){
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
     h+='<div class="card"><div class="row between"><h2 style="margin:0">今天的任务</h2><span class="chip sky">'+p.time+' 提醒 · 23:59 截止</span></div><div style="margin-top:6px">'+
-    backNote(g,t,p)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
+    backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
     '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';

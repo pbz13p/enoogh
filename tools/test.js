@@ -157,5 +157,23 @@ ok(r.html.includes('连着漏了 2 天') && !r.html.includes('别连漏两天'),
 s = goal(); s.goal.days['2026-11-10'] = { done: true }; r = run(s, '2026-11-11');
 ok(!r.html.includes('别连漏两天'), '昨天做到了就不显示回归提示');
 
+
+// 定计划页“下一步”灰着时，要告诉用户还差什么
+s = { v: 1, offset: 0, ui: { tab: 'today' }, history: [], goal: null,
+  draft: { step: 2, type: 'custom', goalName: '', pte: { now: 58, target: 65, exam: '2026-12-20', weak: 'speaking' },
+    days: [1, 2, 3], time: '20:00', tasks: [{ name: '', qty: 1, unit: '次', mins: 15 }], stake: 300, mode: 'normal', pay: 'card', charity: 'amaze', agree: {} } };
+r = run(s, '2026-11-11');
+ok(r.html.includes('还差：目标名称、任务名称'), '下一步不可点时应提示还差目标名称和任务名称');
+s.draft.goalName = '每天健身'; s.draft.tasks[0].name = '跑步'; r = run(s, '2026-11-11');
+ok(!r.html.includes('还差：'), '都填好后不再显示“还差”提示');
+
+// 欢迎页不承诺还没有的小组功能
+r = run(null, '2026-11-11');
+ok(!r.html.includes('小组里互相看得见'), '欢迎页不应写还没上线的小组功能');
+
+// 漏练后回来、已经勾了任务：把回归提示换成鼓励
+s = goal(); s.goal.days['2026-11-10'] = { tasks: { 0: true } }; r = run(s, '2026-11-10');
+ok(r.html.includes('开了头，继续') && !r.html.includes('别连漏两天'), '勾了任务后回归提示应换成鼓励');
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
