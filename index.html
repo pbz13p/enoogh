@@ -855,7 +855,7 @@ function viewPlan(){
   h+=cycleCal(g);
   h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+
   '<button class="btn soft block" style="margin-top:12px" id="addCal">📅 加到手机日历（练习日 '+esc(cur.time)+' 提醒）</button><p class="small muted" style="margin:6px 0 0;text-align:center">练习日自动重复到结营；改了提醒时间再加一次即可</p></div>';
-  h+='<div class="card"><div class="row between"><h2 style="margin:0">下周计划</h2>'+(next?'<span class="chip brand">已修改，下周生效</span>':'<span class="chip grey">和本周一样</span>')+'</div>'+
+  h+='<div class="card"><div class="row between"><h2 style="margin:0">下周计划</h2>'+(next?'<span class="chip brand">'+fmt(addDays(fromKey(g.start),(w+1)*7))+' 起生效</span>':'<span class="chip grey">和本周一样</span>')+'</div>'+
   (next?planTable(next.plan):'<p class="small muted" style="margin:8px 0 0">改计划只在下周生效。这样就不会出现“今天累了，临时少练点”。</p>')+
   '<button class="btn soft block" style="margin-top:12px" id="editNext">修改下周计划</button></div>';
   return h;
@@ -869,7 +869,7 @@ function bindPlan(){
   on('#editNext','click',function(){
     var g=S.goal,w=weekIndex(g,today()),base=JSON.parse(JSON.stringify((g.plans.filter(function(p){return p.fromWeek>w;})[0]||{plan:planFor(g,today())}).plan));
     function body(){
-      return '<h2>修改下周计划</h2><p class="small muted">从下周（第 '+(w+2)+' 周）开始生效。</p>'+
+      return '<h2>修改下周计划</h2><p class="small muted">从 '+fmtLong(addDays(fromKey(g.start),(w+1)*7))+'（第 '+(w+2)+' 周）开始生效。</p>'+
       base.tasks.map(function(x,i){return '<div class="task"><div class="nm"><div class="t">'+esc(x.name)+'</div></div><div class="qty"><input class="in" data-eq="'+i+'" type="number" inputmode="numeric" min="0" value="'+x.qty+'" aria-label="'+esc(x.name)+' 数量"><span class="small muted">'+esc(x.unit)+'</span></div></div>';}).join('')+
       '<p class="small muted">数量填 0 = 下周去掉这一项。</p>'+(g.type!=='pte'?'<div class="row" style="gap:6px;margin-bottom:12px"><input class="in" id="eNewN" maxlength="40" placeholder="新任务，比如：拉伸" style="flex:1;min-width:0;min-height:42px" aria-label="新任务名称"><input class="in" id="eNewU" maxlength="4" placeholder="次" style="width:56px;min-height:42px" aria-label="单位"><button type="button" class="btn small soft" id="eAdd">＋ 加</button></div>':'')+'<div class="field"><label class="f">哪几天做</label><div class="wkpick">'+[1,2,3,4,5,6,0].map(function(d){var on=base.days.indexOf(d)>=0;return '<button type="button" class="btn small '+(on?'on':'ghost')+'" data-eday="'+d+'" aria-pressed="'+on+'" aria-label="'+WD[d]+'">'+WD[d].slice(1)+'</button>';}).join('')+'</div></div><div class="field"><label class="f" for="eTime">提醒时间</label>'+timeSel('eTime',base.time)+'</div>'+
       '<div id="eWarn"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="eSave">保存</button></div>';
@@ -886,7 +886,7 @@ function bindPlan(){
         if(!base.tasks.length){toast('至少留一项任务');return;}
         if(!base.days.length){toast('至少选一天');return;}
         base.days.sort(function(a,b){return ((a+6)%7)-((b+6)%7);});
-        g.plans=g.plans.filter(function(p){return p.fromWeek<=w;}); g.plans.push({fromWeek:w+1,plan:base}); save(); close(); render(); toast('已保存，下周生效');
+        g.plans=g.plans.filter(function(p){return p.fromWeek<=w;}); g.plans.push({fromWeek:w+1,plan:base}); save(); close(); render(); toast('已保存，'+fmt(addDays(fromKey(g.start),(w+1)*7))+' 起生效');
       };
     });
   });

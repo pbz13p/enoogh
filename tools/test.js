@@ -387,5 +387,6 @@ ok(html.includes("'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'"
 ok(code.includes("id=\\\"eAdd\\\"") || code.includes('id="eAdd"') || code.includes("id=\"eAdd\""), '下周计划可以加新任务（非 PTE）');
 ok(code.includes("7:'连续 7 天！一整周说到做到"), '连续 3/7/14/21 天打卡有庆祝提示');
 ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息日有按钮直接去复盘');
+{ const sw2 = goal(); sw2.goal.start = '2026-11-04'; sw2.ui.tab = 'plan'; sw2.goal.plans.push({ fromWeek: 1, plan: sw2.goal.plans[0].plan }); ok(run(sw2, '2026-11-09').html.includes('11月11日 起生效'), '改计划写明哪天起生效（按开始日算周，不是周一）'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
