@@ -53,6 +53,7 @@ function run(state, todayISO, hhmm) {
 let r = run(null, '2026-11-09');
 ok(r.html.includes('开始定目标'), '新用户应看到欢迎页');
 ok(r.html.includes('Enoogh'), '页面应显示品牌名 Enoogh');
+ok(r.html.includes('演示版') && !r.html.includes('demoNext'), '还没目标时不显示没用的“下一天”按钮');
 
 // —— 2. 已开始的目标：周一开始，练周一到周六，承诺金 $300（漏一天扣 $15） ——
 function goal(extra) {

@@ -339,7 +339,7 @@ function on(sel,ev,fn,root){(root||$app).querySelectorAll(sel).forEach(function(
 function top(ro){
   return '<div class="top">'+LOGO+'<div><div class="name">Enoogh <span class="muted small" style="font-weight:600">一诺</span></div><div class="sub">说到做到。做不到，就捐出去。</div></div><div class="spacer"></div></div>'+(ro?'':
   '<div class="demo" role="note"><b>演示版</b><span class="muted">不扣钱 · '+fmtLong(today())+'</span><div class="spacer"></div>'+
-  '<button class="btn small ghost" id="demoNext" aria-label="模拟到下一天">下一天 ▶</button></div>');
+  (S.goal&&!S.goal.finished?'<button class="btn small ghost" id="demoNext" aria-label="模拟到下一天">下一天 ▶</button>':'')+'</div>');
 }
 function bindTop(){
   var b=document.getElementById('demoNext'); if(b)b.addEventListener('click',function(){S.offset++;save();settle();render();toast('已跳到 '+fmtLong(today()));});
