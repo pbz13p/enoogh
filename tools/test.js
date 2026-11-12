@@ -355,5 +355,6 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
 { const s1 = goal(); s1.goal.start = '2026-11-12'; const late = run(s1, '2026-11-12', '21:30'), early = run(s1, '2026-11-12', '18:00');
   ok(late.html.includes('离今天截止还有 2 小时 29 分钟') && !early.html.includes('离今天截止'), '截止前 4 小时提示还剩多久');
   const s2 = goal(); s2.goal.type = 'custom'; s2.goal.tpl = 'sleep'; ok(!run(s2, '2026-11-12', '21:30').html.includes('离今天截止'), '早睡/戒奶茶不显示 23:59 倒计时'); }
+{ const sa = goal(); ok(run(sa, '2026-11-12').html.includes('把一诺放到手机桌面'), '今天页提示加到手机桌面'); sa.ui.a2hs = 1; ok(!run(sa, '2026-11-12').html.includes('把一诺放到手机桌面'), '点“知道了”后不再提示'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
