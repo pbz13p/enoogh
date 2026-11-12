@@ -774,7 +774,7 @@ function bindToday(){
   on('#recAgain','click',function(){r.audio=null;save();render();});
   on('#recStart','click',startRec);
   on('#submitDay','click',function(){
-    var now=new Date();r.done=true;r.doneAt=(wasLate?'次日 ':'')+pad(now.getHours())+':'+pad(now.getMinutes());lateMode=false;save();render();toast(wasLate?'昨天补上了，不算漏练 👏':'打卡成功！承诺金一分没少 👏');
+    var now=new Date();r.done=true;r.doneAt=(wasLate?'次日 ':'')+pad(now.getHours())+':'+pad(now.getMinutes());lateMode=false;save();render();var sk=doneStreak(g,today()),ms={3:'连续 3 天！开头最难的已经过去了 🎉',7:'连续 7 天！一整周说到做到 🎉',14:'连续 14 天！习惯正在成形 🎉',21:'连续 21 天！这已经是你的一部分了 🎉'};toast(wasLate?'昨天补上了，不算漏练 👏':(ms[sk]||'打卡成功！承诺金一分没少 👏'));
   });
   on('#excuseToday','click',function(){appealSheet('today',k);});
   on('#appealPending','click',function(){appealSheet('pending',appealDays(g)[0].day);});

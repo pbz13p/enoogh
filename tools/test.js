@@ -321,7 +321,7 @@ ok(/b\.onclick=function\(\)\{document\.querySelectorAll\('\.toast'\)/.test(code)
   ok(a.saved.goal.ledger.length === 1 && !a.html.includes('补交昨天的打卡'), '早睡：过了中午 12 点昨天才算漏练');
   const pte = run(goal(), '2026-11-10', '09:30');
   ok(pte.saved.goal.ledger.length === 1 && !pte.html.includes('补交昨天的打卡'), '普通目标没有次日补打卡');
-  ok(code.includes("lateMode=false;save();render();toast(wasLate?") , '补打卡交完回到今天'); }
+  ok(code.includes("lateMode=false;save();render();") && code.includes("toast(wasLate?'昨天补上了"), '补打卡交完回到今天'); }
 ok(/data-next\]','click',function\(\)\{clearToasts\(\)/.test(code), '换步骤时收起提示条，不挡确认项');
 ok(code.includes('第二天中午 12 点前要交'), '早睡/戒奶茶的确认条款写明次日中午截止');
 ok(html.includes('og:image') && fs.existsSync(path.join(__dirname,'..','icons','og.jpg')), '分享链接有预览图');
@@ -385,5 +385,6 @@ ok(html.includes("'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'"
   ok(run(sv, '2026-11-12').html.includes('已申诉 · 不扣'), '扣款记录里显示已申诉的日子'); }
 { const sk = goal(); sk.goal.start = '2026-11-12'; ok(run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '第一周今天页提示加到日历'); sk.ui.calDone = 1; ok(!run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '加过日历就不再提示'); }
 ok(code.includes("id=\\\"eAdd\\\"") || code.includes('id="eAdd"') || code.includes("id=\"eAdd\""), '下周计划可以加新任务（非 PTE）');
+ok(code.includes("7:'连续 7 天！一整周说到做到"), '连续 3/7/14/21 天打卡有庆祝提示');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
