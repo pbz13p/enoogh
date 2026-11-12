@@ -500,7 +500,8 @@ function stepPlan(D){
   var mins=estMinutes(D.tasks), warn='';
   if(mins>60)warn='<div class="card warnc" style="margin:12px 0 0"><b>计划可能太满了：</b>估计每天约 '+mins+' 分钟。第一周建议控制在 30–45 分钟，做到了再加。</div>';
   else if(D.days.length===7)warn='<div class="card warnc" style="margin:12px 0 0"><b>建议留一天休息。</b>每天都练最容易第二周就断掉。</div>';
-  h+='<p class="small muted" style="margin:10px 0 0">估计每天约 <b>'+mins+'</b> 分钟</p>'+warn+'</div>';
+  var cov=0;if(D.type==='pte'){var mine={};D.tasks.forEach(function(t){if(t.code&&PTE[t.code])mine[PTE[t.code].n]=1;});cov=PTE_WEIGHTS.reduce(function(x,w){return x+(mine[w[0]]?w[1]:0);},0);}
+  h+='<p class="small muted" style="margin:10px 0 0">估计每天约 <b>'+mins+'</b> 分钟'+(cov?' · 练到的题型约占总分 <b>'+cov+'%</b>':'')+'</p>'+warn+'</div>';
   var ok=planMissing(D).length===0;
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(ok?'':'disabled')+'>下一步</button></div>';
   var miss=planMissing(D);
