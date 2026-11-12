@@ -383,5 +383,6 @@ ok(html.includes("'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'"
 { const se2 = goal(); se2.goal.start = '2026-11-12'; se2.goal.days['2026-11-12'] = { excused: true, reason: '生病了' }; const h = run(se2, '2026-11-12').html; ok(h.includes('今天已报备') && h.includes('明天 20:00 要做'), '报备后显示明天要做什么'); }
 { const sv = goal(); sv.ui.tab = 'money'; sv.goal.days['2026-11-10'] = { excused: true, reason: 'x' }; sv.goal.ledger = [{ day: '2026-11-10', amt: 15, status: 'void', noticed: '2026-11-11' }];
   ok(run(sv, '2026-11-12').html.includes('已申诉 · 不扣'), '扣款记录里显示已申诉的日子'); }
+{ const sk = goal(); sk.goal.start = '2026-11-12'; ok(run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '第一周今天页提示加到日历'); sk.ui.calDone = 1; ok(!run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '加过日历就不再提示'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

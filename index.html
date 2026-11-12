@@ -739,6 +739,7 @@ function viewToday(){
     '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':(function(t){return pledge?t.replace('交上证据','勾上承诺'):t;})(ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk)))+'</p></div>';
     if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
+  if(!isLate&&!S.ui.calDone&&!S.ui.calTip&&cs.day<=7)h+='<div class="card tint small" id="calCard" style="margin-top:12px"><b>让手机每天提醒你</b><div style="margin:4px 0 10px;line-height:1.6">加到手机日历，练习日 '+esc(p&&p.time||'')+' 自动响，到结营为止。</div><div class="row"><button class="btn small primary" id="calGo" style="flex:1">📅 加到手机日历</button><button class="btn small ghost" id="calX">不用了</button></div></div>';
   if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
@@ -754,6 +755,8 @@ function bindToday(){
   var g=S.goal, k=key(shownDay()), r=rec(g,k), wasLate=k!==key(today());
   on('#pledgeTick','click',function(){r.pledge=!r.pledge;save();render();});
   on('#undoDone','click',function(e){e.preventDefault();r.done=false;delete r.doneAt;save();render();toast('已撤回，做完再打卡');});
+  on('#calGo','click',function(){addToCalendar();render();});
+  on('#calX','click',function(){S.ui.calTip=1;save();render();});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});
@@ -836,6 +839,8 @@ function cycleCal(g){var st0=fromKey(g.start),t=today(),ic={done:'✓',miss:'✕
   var h='';for(var w=0;w<4;w++){h+='<div class="week">';for(var i=0;i<7;i++){var d=addDays(st0,w*7+i),st=dayStatus(g,d),cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
     h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+fmt(d)+' '+(lb[st]||'')+'"><span style="font-size:11px">'+(d.getMonth()+1)+'/'+d.getDate()+'</span><b>'+(ic[st]||'&nbsp;')+'</b></div>';}h+='</div>';}
   return '<div class="card"><div class="row between"><h2 style="margin:0">本期日历</h2><span class="chip grey">'+fmt(st0)+' – '+fmt(cycleEnd(g))+'</span></div>'+head+h+'</div>';}
+function addToCalendar(){var txt=icsText(S.goal,today());if(!txt){toast('本周没有练习日');return;}
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();S.ui.calDone=1;save();toast('打开下载的文件，选「添加到日历」');}
 function viewPlan(){
   var g=S.goal,t=today(),w=weekIndex(g,t),cur=planFor(g,t),next=g.plans.filter(function(p){return p.fromWeek>w;})[0];
   var h='<h1>计划</h1>';
@@ -859,8 +864,7 @@ function planTable(p){
   p.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
-  on('#addCal','click',function(){var txt=icsText(S.goal,today());if(!txt){toast('本周没有练习日');return;}
-    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();toast('打开下载的文件，选「添加到日历」');});
+  on('#addCal','click',addToCalendar);
   on('#editNext','click',function(){
     var g=S.goal,w=weekIndex(g,today()),base=JSON.parse(JSON.stringify((g.plans.filter(function(p){return p.fromWeek>w;})[0]||{plan:planFor(g,today())}).plan));
     function body(){
