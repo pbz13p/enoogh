@@ -144,6 +144,7 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .tab.on{color:var(--brand-ink);font-weight:700}
 .tab svg{width:24px;height:24px}
 .tip{display:flex;gap:10px;align-items:flex-start}
+.tip.lt{padding:12px 0;border-top:1px solid var(--line);line-height:1.6}.card h2+.tip.lt{border-top:0;padding-top:4px}.tip.lt .ic{background:var(--brand-tint)}
 .back{margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:#FFF7E8;border:1px solid #F6DFB3;font-size:13px;line-height:1.5;color:#6B4E16}
 .back b{display:block;font-size:14px;color:#5A3F0C;margin-bottom:2px}
 .back.go{background:#E8F6F4;border-color:#BFE6E0;color:#24574F}.back.go b{color:#0B7A6E}
@@ -221,6 +222,13 @@ var PTE_TEMPLATES={
   reading:{label:'阅读',tasks:[['FIBD',10],['FIBDD',8],['RS',10],['DI',4]]},
   listening:{label:'听力',tasks:[['WFD',15],['RS',20],['SGD',2],['HIW',5]]}
 };
+var TPL_TIPS={ // 按模板给的坚持技巧（只讲做法，不讲效果数字）
+ run:['前一晚把跑鞋和衣服放在门口，早上起来直接穿上出门。','跑不动就慢下来、走一段，今天的目标是“出门跑完”，不是跑多快。','跑完马上拉伸，然后打卡，把这两件事连在一起。'],
+ read:['书放在枕边或包里最显眼的地方，手机放远一点。','读到一半停不下来时，在页边写一句话，第二天从这句话接着读。','固定一个“读书时间”，比如睡前或通勤路上。'],
+ english:['单词放在碎片时间背：排队、坐车、等外卖。','听力选你感兴趣的内容，听不懂的句子跟读三遍。','今天背的单词，睡前再快速过一遍。'],
+ sleep:['提醒响了就把手机放到卧室外充电。','睡前一小时调暗灯光，别再刷短视频。','第二天早上同一时间起床，晚上更容易困。'],
+ milktea:['想喝的时候先喝一大杯水，等 10 分钟再决定。','把常路过的奶茶店换一条路走。','准备一个替代品：无糖茶、气泡水或水果。'],
+ gym:['健身包前一晚收好，下班直接去，别先回家。','动作不熟就先做轻重量，把动作做标准。','记下每次练了什么，下次照着加一点点。']};
 var GENERAL_TIPS=['把任务放在固定时间、固定地点做，减少每天的决定。','先做 2 分钟：打开就开始，往往就停不下来了。','前一天晚上把要用的东西准备好。','漏了一天不要紧，最重要的是不要连续漏两天。','完成后马上打卡，别等到睡前。'];
 
 /* ---------- state ---------- */
@@ -505,7 +513,7 @@ function bindOnboard(D){
   on('[data-agree]','click',function(){var i=this.getAttribute('data-agree');D.agree[i]=!D.agree[i];save();render();});
   on('#startGoal','click',function(){
     var plan={days:D.days.slice(),time:D.time,tasks:D.tasks.map(function(t){return {code:t.code||null,name:t.name,qty:t.qty,unit:t.unit,mins:t.mins||0};})};
-    S.goal={id:Date.now(),type:D.type,name:D.type==='pte'?'PTE 提分':D.goalName.trim(),pte:D.type==='pte'?JSON.parse(JSON.stringify(D.pte)):null,
+    S.goal={id:Date.now(),type:D.type,name:D.type==='pte'?'PTE 提分':D.goalName.trim(),pte:D.type==='pte'?JSON.parse(JSON.stringify(D.pte)):null,tpl:D.type==='custom'&&D.tpl||null,
       start:key(today()),plans:[{fromWeek:0,plan:plan}],stake:D.stake,mode:D.mode,pay:D.pay,charity:D.charity,fee:D.type==='pte'?49:29,
       days:{},ledger:[],appealsUsed:0,finished:null};
     S.draft=null;S.ui.tab='today';save();render();window.scrollTo(0,0);toast('开始了！今天就是第一天');
@@ -536,7 +544,7 @@ var TABDEF=[['today','今天','<path d="M4 12.5l5 5L20 7" fill="none" stroke="cu
 function renderTabs(){
   var g=S.goal, el=document.getElementById('tabs'); el.classList.remove('hide');
   document.getElementById('tabsIn').innerHTML=TABDEF.map(function(t){var label=t[0]==='learn'&&g.type!=='pte'?'技巧':t[1];return '<button class="tab '+(S.ui.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'" aria-current="'+(S.ui.tab===t[0]?'page':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+t[2]+'</svg>'+label+'</button>';}).join('');
-  document.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){S.ui.tab=this.getAttribute('data-tab');save();render();window.scrollTo(0,0);};});
+  document.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){document.querySelectorAll('.toast').forEach(function(x){x.remove();});S.ui.tab=this.getAttribute('data-tab');save();render();window.scrollTo(0,0);};});
 }
 function render(){
   var W=parseWitness(window.location&&window.location.hash);
@@ -559,7 +567,10 @@ function render(){
 /* today */
 function dailyTip(g,d){
   if(g.type==='pte'){var p=planFor(g,d), codes=p.tasks.filter(function(x){return x.code;}); if(codes.length){var c=codes[diffDays(fromKey(g.start),d)%codes.length].code;return '<b>'+PTE[c].n+'：</b>'+PTE[c].tip;}}
-  return GENERAL_TIPS[Math.abs(diffDays(fromKey(g.start),d))%GENERAL_TIPS.length];
+  var L=goalTips(g);
+  return L[Math.abs(diffDays(fromKey(g.start),d))%L.length];
+}
+function goalTips(g){return (TPL_TIPS[g.tpl]||[]).concat(GENERAL_TIPS);
 }
 function weekStrip(g){
   var t=today(), mon=addDays(t,-((t.getDay()+6)%7)), h='<div class="week">';
@@ -818,7 +829,11 @@ function bindMoney(){on('#resetAll','click',function(){var b=this;if(!b.dataset.
 /* learn */
 function viewLearn(){
   var g=S.goal;
-  if(g.type!=='pte'){return '<h1>坚持技巧</h1>'+GENERAL_TIPS.map(function(x){return '<div class="card"><div class="tip"><div class="ic">💡</div><div>'+x+'</div></div></div>';}).join('');}
+  if(g.type!=='pte'){
+    var tl=function(L){return L.map(function(x){return '<div class="tip lt"><div class="ic">💡</div><div>'+x+'</div></div>';}).join('');};
+    var T=TPL_TIPS[g.tpl], tp=GOAL_TPL.filter(function(x){return x.id===g.tpl;})[0];
+    return '<h1>坚持技巧</h1>'+(T?'<div class="card"><h2>'+tp.ic+' '+tp.name+'的小办法</h2>'+tl(T)+'</div>':'')+
+      '<div class="card"><h2>任何目标都管用</h2>'+tl(GENERAL_TIPS)+'</div>';}
   var max=15;
   var h='<h1>提分</h1><div class="card"><h2>时间先花在哪</h2><p class="small muted">各题型占总分的平均比重（Pearson 官方权重表，2025 年 7 月）。只用来排优先级，不能用来算分。</p>'+
   PTE_WEIGHTS.map(function(w,i){return '<div class="wbar"><span>'+w[0]+'</span><div class="b '+(i===0?'hot':'')+'" style="width:'+(w[1]/max*100)+'%"></div><b>'+w[1]+'%</b></div>';}).join('')+'</div>';

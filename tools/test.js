@@ -300,5 +300,12 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
   ok(f(2, false) === '还差 2 项没勾，再交上证据就能打卡。' && f(1, true) === '还差 1 项没勾，勾完就能打卡。' && f(0, false) === '就差最后一步：交上证据就能打卡。', '打卡提示说清还差几项、还差证据');
   ok(!html.includes('再交证据。'), '不再出现看不懂的“再交证据。”'); }
 
+
+// 模板技巧：选了模板的目标，技巧页和每日小技巧带上该模板的办法；旧数据没有 tpl 也能用
+ok(/tpl:D\.type==='custom'&&D\.tpl\|\|null/.test(code), '开始目标时记下选的模板');
+ok(/TPL_TIPS=\{[\s\S]*run:\[[\s\S]*gym:\[/.test(code), '每个模板都有自己的技巧');
+ok(/function goalTips\(g\)\{return \(TPL_TIPS\[g\.tpl\]\|\|\[\]\)\.concat\(GENERAL_TIPS\)/.test(code), '没有模板时退回通用技巧');
+ok(code.indexOf('任何目标都管用')>0, '技巧页分成模板技巧和通用技巧两组');
+ok(/b\.onclick=function\(\)\{document\.querySelectorAll\('\.toast'\)/.test(code), '切换标签时收起提示条');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
