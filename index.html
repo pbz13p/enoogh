@@ -888,6 +888,8 @@ function viewMoney(){
     ['生病或有急事怎么办？','普通模式每期有 2 次机会：当天点「报备」，或漏练后在待扣款卡上「申诉」，通过就不扣。硬核模式不能申诉。'],
     ['现在会真的扣钱吗？','不会。现在是演示版，不连接任何付款。']
   ].map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>';}).join('')+'</div>';
+  if(S.history&&S.history.length){var tot=S.history.reduce(function(x,y){return x+(+y.charged||0);},0);
+    h+='<div class="card"><div class="row between"><h3 style="margin:0">以前的几期</h3>'+(tot?'<span class="chip brand">累计捐出 '+money(tot)+'</span>':'')+'</div>'+S.history.slice(-6).reverse().map(function(x){return '<div class="kv"><span>'+esc(x.name||'')+(x.end?' <span class="small muted">· '+fmt(fromKey(x.end))+' 结营</span>':'')+'</span><b>'+(+x.rate||0)+'%'+(x.charged?' · 捐 '+money(x.charged):'')+'</b></div>';}).join('')+'</div>';}
   h+='<div class="card"><h3 style="margin:0 0 6px">备份</h3><p class="small muted" style="margin:0 0 12px">你的计划、打卡和照片只存在这台设备的浏览器里。换手机或清理浏览器前，先导出一份。</p><div class="row"><button class="btn soft" style="flex:1" id="bkOut">导出备份</button><button class="btn ghost" style="flex:1" id="bkIn">从备份恢复</button></div></div>';
   h+='<button class="btn danger block" id="resetAll">删除这一期（演示用）</button>';
   return h;
