@@ -352,5 +352,8 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
   ok(/function save\(\)\{var tx=JSON\.stringify\(S\);try\{localStorage\.setItem/.test(code) && code.includes('var steps=[14,7,3,1,0]'), '保存失败会逐步清旧证据再重试'); }
 { const se = goal(); se.goal.pte.exam = '2026-11-12'; ok(run(se, '2026-11-12').html.includes('今天考试，加油') && run(se, '2026-11-14').html.includes('考试已过'), '考试当天和考后不再显示“距离考试 0 天”'); }
 ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '下周计划可以改练哪几天，至少一天');
+{ const s1 = goal(); s1.goal.start = '2026-11-12'; const late = run(s1, '2026-11-12', '21:30'), early = run(s1, '2026-11-12', '18:00');
+  ok(late.html.includes('离今天截止还有 2 小时 29 分钟') && !early.html.includes('离今天截止'), '截止前 4 小时提示还剩多久');
+  const s2 = goal(); s2.goal.type = 'custom'; s2.goal.tpl = 'sleep'; ok(!run(s2, '2026-11-12', '21:30').html.includes('离今天截止'), '早睡/戒奶茶不显示 23:59 倒计时'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

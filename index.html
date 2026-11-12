@@ -399,7 +399,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.pruneMedia=pruneMedia;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.pruneMedia=pruneMedia;window.__test.deadlineNote=deadlineNote;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -629,6 +629,9 @@ function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '
   var did=p.tasks.filter(function(x,i){return r&&r.tasks&&r.tasks[i];}).length,left=p.tasks.length-did;
   if(did)return '<div class="back go"><b>开了头，继续！</b><div>'+(left?'还剩 '+left+' 项，做完点下面「打卡完成」，今天就算回来了。':'都做完了，点下面「打卡完成」，今天就算回来了。')+'</div></div>';
   return '<div class="back"><b>'+(n===1?'上次漏了没关系，别连漏两天':'已经连着漏了 '+n+' 天，今天回来最重要')+'</b><div>'+(p.tasks.length>1?'先只做第一项':'现在就开始')+'「'+esc(f.name)+' '+f.qty+' '+esc(f.unit)+'」，开了头就容易做完。</div></div>';}
+/* 截止前 4 小时：告诉用户还剩多久（用真实时钟；演示跳天时不显示） */
+function deadlineNote(g,isLate){if(isLate||GRACE_HOUR[g.tpl]||S.offset)return '';var n=new Date(),m=(23-n.getHours())*60+(59-n.getMinutes());if(m>240||m<0)return '';
+  var h=Math.floor(m/60),mm=m%60;return '<div class="back"><b>离今天截止还有 '+(h?h+' 小时 ':'')+mm+' 分钟</b><div>现在做最简单的那一项，做完就打卡。</div></div>';}
 /* 进度线（参考 Beeminder 的“路”）：本期每个练习日一格，今天一眼看到在轨道上还是掉队，照这个速度最后会扣多少 */
 function projection(g){
   var t=today(),start=fromKey(g.start),done=0,miss=0,left=0;
@@ -709,7 +712,7 @@ function viewToday(){
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
     h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':esc(p.time)+' 提醒 · '+(GRACE_HOUR[g.tpl]?'次日 12:00 截止':'23:59 截止'))+'</span></div><div style="margin-top:6px">'+
-    backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
+    (backNote(g,t,p,r)||deadlineNote(g,isLate))+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
     '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
