@@ -688,7 +688,7 @@ function viewToday(){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
-    h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':p.time+' 提醒 · 23:59 截止')+'</span></div><div style="margin-top:6px">'+
+    h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':p.time+' 提醒 · '+(GRACE_HOUR[g.tpl]?'次日 12:00 截止':'23:59 截止'))+'</span></div><div style="margin-top:6px">'+
     backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
