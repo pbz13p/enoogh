@@ -894,7 +894,8 @@ function viewMoney(){
   '<div class="kv"><span>模式</span><b>'+(g.mode==='hard'?'硬核':'普通 · 剩 '+appealsLeft(g)+' 次申诉')+'</b></div>'+
   '<div class="kv"><span>已扣（将捐出）</span><b>'+money(T.charged)+'</b></div><div class="kv"><span>'+(g.mode==='hard'||!appealsLeft(g)?'待扣':'待扣（可申诉）')+'</span><b>'+money(T.pending)+'</b></div>'+
   '<div class="kv"><span>捐给</span><b>'+(ch.url?'<a href="'+esc(ch.url)+'" target="_blank" rel="noopener">'+esc(ch.name)+'</a>':esc(ch.name))+'</b></div><div class="kv"><span>服务费（我们的收入）</span><b>'+money(g.fee)+'</b></div></div>';
-  h+='<div class="card"><h2>扣款记录</h2>'+(g.ledger.filter(function(l){return l.status!=='void';}).length?g.ledger.filter(function(l){return l.status!=='void';}).slice().reverse().map(function(l){return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+money(l.amt)+' <span class="chip '+(l.status==='charged'?'grey':'bad')+'">'+(l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
+  var shown=g.ledger.filter(function(l){return l.status!=='void'||(g.days[l.day]&&g.days[l.day].excused);});
+  h+='<div class="card"><h2>扣款记录</h2>'+(shown.length?shown.slice().reverse().map(function(l){var ap=l.status==='void';return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+(ap?'<s class="muted">'+money(l.amt||perMiss(g))+'</s>':money(l.amt))+' <span class="chip '+(ap?'sky':l.status==='charged'?'grey':'bad')+'">'+(ap?'已申诉 · 不扣':l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
   h+='<div class="card faq"><h2>常见问题</h2>'+[
     ['扣下的钱去哪了？','100% 捐给你选的 '+esc(ch.name)+'，每月汇总捐一次，捐款收据会发给你。我们不留一分。'],
     ['平台收多少钱？','只收一次服务费，本期 '+money(g.fee)+'，开始时收、不退。这是我们唯一的收入，所以我们最希望的是你做到。'],
