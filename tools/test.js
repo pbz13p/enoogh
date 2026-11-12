@@ -397,5 +397,6 @@ ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息�
   const bad2 = goal(); bad2.goal.stake = 99999; ok(!V(bad) && !V(bad2) && V(goal()), '备份校验：日期格式和承诺金档位不对的拒绝'); }
 { const sT2 = goal(); sT2.goal.start = '2026-11-13'; ok(run(sT2, '2026-11-12').html.includes('让手机每天提醒你'), '明天开始的准备页也提示加日历'); }
 { const h = run(null, '2026-11-12').html; ok(h.includes('我的数据存在哪？') && h.includes('现在会真的扣钱吗？'), '欢迎页有常见问题'); }
+{ const sr = goal(); sr.goal.type = 'custom'; sr.ui.tab = 'plan'; ok(run(sr, '2026-11-12').html.includes('改目标名'), '计划页可以改目标名'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

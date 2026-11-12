@@ -868,7 +868,7 @@ function addToCalendar(){var txt=icsText(S.goal,today());if(!txt){toast('本周�
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();S.ui.calDone=1;save();if(S.ui.tab==='plan')render();toast('打开下载的文件，选「添加到日历」');}
 function viewPlan(){
   var g=S.goal,t=today(),w=weekIndex(g,t),cur=planFor(g,t),next=g.plans.filter(function(p){return p.fromWeek>w;})[0];
-  var h='<h1>计划</h1>';
+  var h='<div class="row between" style="align-items:center"><h1 style="margin-bottom:8px">计划</h1>'+(g.type!=='pte'?'<button class="btn small ghost" id="rename" aria-label="改目标名称">改目标名</button>':'')+'</div>';
   // weekly review on Saturday/Sunday or any time: this week's numbers
   var mon=addDays(t,-((t.getDay()+6)%7)),done=0,miss=0,ex=0;
   for(var i=0;i<7;i++){var d=addDays(mon,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done')done++;if(st==='miss')miss++;if(st==='excused')ex++;}
@@ -890,6 +890,8 @@ function planTable(p){
 }
 function bindPlan(){
   on('#addCal','click',addToCalendar);
+  on('#rename','click',function(){var g=S.goal;sheet('<h2>改目标名称</h2><div class="field"><input class="in" id="rnIn" maxlength="30" value="'+esc(g.name)+'" aria-label="目标名称"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="rnSave">保存</button></div>',function(el,close){
+    el.querySelector('[data-close]').onclick=close;el.querySelector('#rnSave').onclick=function(){var v=(el.querySelector('#rnIn').value||'').trim();if(!v){toast('名称不能空着');return;}g.name=v.slice(0,30);save();close();render();toast('已改名');};});});
   on('#editNext','click',function(){
     var g=S.goal,w=weekIndex(g,today()),base=JSON.parse(JSON.stringify((g.plans.filter(function(p){return p.fromWeek>w;})[0]||{plan:planFor(g,today())}).plan));
     function body(){
