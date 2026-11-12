@@ -376,6 +376,9 @@ function bindTop(){
 /* ---------- onboarding ---------- */
 function planMissing(D){var m=[];
   if(D.type!=='pte'&&!(D.goalName||'').trim())m.push('目标名称');
+  if(D.type==='pte'&&D.pte){var pn=+D.pte.now,pt=+D.pte.target;
+    if(!(pn>=10&&pn<=90)||!(pt>=10&&pt<=90))m.push('分数（10–90）');else if(pt<=pn)m.push('目标分要高于现在');
+    if(!D.pte.exam||!/^\d{4}-\d\d-\d\d$/.test(D.pte.exam)||diffDays(today(),fromKey(D.pte.exam))<1)m.push('考试日期（要在今天之后）');}
   if(!D.days.length)m.push('哪几天做');
   if(!D.tasks.length)m.push('至少一项任务');
   else{if(D.tasks.some(function(t){return !(t.name||'').trim();}))m.push('任务名称');
@@ -401,7 +404,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.pruneMedia=pruneMedia;window.__test.deadlineNote=deadlineNote;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.pruneMedia=pruneMedia;window.__test.planMissing=planMissing;window.__test.deadlineNote=deadlineNote;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -476,7 +479,7 @@ function stepPlan(D){
   if(mins>60)warn='<div class="card warnc" style="margin:12px 0 0"><b>计划可能太满了：</b>估计每天约 '+mins+' 分钟。第一周建议控制在 30–45 分钟，做到了再加。</div>';
   else if(D.days.length===7)warn='<div class="card warnc" style="margin:12px 0 0"><b>建议留一天休息。</b>每天都练最容易第二周就断掉。</div>';
   h+='<p class="small muted" style="margin:10px 0 0">估计每天约 <b>'+mins+'</b> 分钟</p>'+warn+'</div>';
-  var ok=D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;});
+  var ok=planMissing(D).length===0;
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next '+(ok?'':'disabled')+'>下一步</button></div>';
   var miss=planMissing(D);
   h+='<p class="small muted" id="planMiss" style="text-align:right;margin:8px 2px 0;min-height:1.2em">'+(miss.length?'还差：'+miss.join('、'):'')+'</p>';
@@ -525,9 +528,9 @@ function bindOnboard(D){
   on('#keepPlan','click',function(){D.carried='same';save();render();});
   on('#pTime,#pTimeM','change',function(){D.time=readTime($app,'pTime')||D.time;save();});
   ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
-  on('#pExam','change',function(){D.pte.exam=this.value;save();});
+  on('#pExam','change',function(){D.pte.exam=this.value;save();syncNext();});
   on('#pWeak','change',function(){D.pte.weak=this.value;D.tasks=buildPteTasks(D);save();render();});
-  function planOk(){return !!(D.tasks.length&&D.days.length&&(D.type==='pte'||D.goalName.trim())&&D.tasks.every(function(t){return t.name.trim()&&t.qty>0;}));}
+  function planOk(){return planMissing(D).length===0;}
   function syncNext(){var b=$app.querySelector('[data-next]');if(b&&D.step===2){b.disabled=!planOk();var m=$app.querySelector('#planMiss'),x=planMissing(D);if(m)m.textContent=x.length?'还差：'+x.join('、'):'';}}
   on('#gName','input',function(){D.goalName=this.value;save();syncNext();});
   on('[data-tname]','input',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();syncNext();});

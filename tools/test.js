@@ -366,5 +366,10 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   for (let i = 0; i < 27; i++) { const d = new Date(2026, 10, 9 + i); sl.goal.days[d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')] = { done: true }; }
   const m = run(JSON.parse(JSON.stringify(sl)), '2026-12-07', '09:00'); ok(!m.saved.goal.finished && m.html.includes('补交昨天的打卡') && m.html.includes('28 天到了') && !m.html.includes('第 29') && !m.html.includes('今天的任务'), '早睡最后一天：次日上午还能补，先不结营，页面不出现第 29 天');
   const n = run(JSON.parse(JSON.stringify(sl)), '2026-12-07', '13:00'); ok(n.saved.goal.finished && n.saved.goal.ledger.some(l => l.day === '2026-12-06' && l.status === 'charged'), '早睡最后一天：过了中午没补就算漏练再结营'); }
+{ const rr = run(null, '2026-11-12'); const T = rr.ctx.window.__test; const D = T.newDraft(); D.type = 'pte'; D.tasks = [{ code: 'DI', name: 'DI', qty: 8, unit: '题' }];
+  ok(T.planMissing(D).length === 0, 'PTE 默认值能通过');
+  D.pte.target = 50; ok(T.planMissing(D).includes('目标分要高于现在'), '目标分不高于现在要拦');
+  D.pte.target = 95; ok(T.planMissing(D).includes('分数（10–90）'), '分数超出 10–90 要拦');
+  D.pte.target = 65; D.pte.exam = '2026-11-01'; ok(T.planMissing(D).includes('考试日期（要在今天之后）'), '考试日期在过去要拦'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
