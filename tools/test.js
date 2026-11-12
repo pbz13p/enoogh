@@ -94,7 +94,8 @@ ok(!!r.saved.goal.finished, '28 天后应结营');
 ok(r.html.includes('再开一期'), '结营页应能再开一期');
 ok(r.html.includes('Amaze'), '结营页应写明捐给了哪家慈善');
 ok(r.html.includes('下一期'), '完成率低时结营页应给出下一期建议');
-ok(r.html.includes('分享我的成绩'), '结营页应有分享按钮');
+ok(r.html.includes('生成成绩图片') && r.html.includes('复制文字'), '结营页应有图片和文字两种分享');
+ok(r.ctx.window.__test.shareCard(r.saved.goal, 80, 16, 20, 5, 60) === null, '没有 canvas 时成绩图片安全返回 null');
 { const tx = r.ctx.window.__test.shareText(r.saved.goal, 40, 8, 20, 3, 75);
   ok(tx.includes('40%') && tx.includes('Amaze') && tx.includes('enoogh.com'), '分享文案应含完成率、慈善和网址');
   ok(!/赌|保过/.test(tx), '分享文案不能出现“赌”“保过”');
@@ -218,6 +219,20 @@ ok(ics.includes('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA;UNTIL=20261206') && i
 // 承诺金页常见问题：钱去哪、服务费、什么时候扣、申诉、演示版
 s = goal(); s.ui.tab = 'money'; r = run(s, '2026-11-12');
 ok(['扣下的钱去哪了','平台收多少钱','$49','什么时候扣','1/20','$15','申诉','演示版'].every(x => r.html.includes(x)), '承诺金页应有常见问题且数字与规则一致');
+
+
+// 通用目标模板：6 个，选了自动填任务、单位、练习日和提醒时间
+s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
+{ const T = r.ctx.window.__test, D = T.newDraft();
+  T.applyTpl(D, 'run');
+  ok(D.type === 'custom' && D.goalName === '跑步' && D.tasks[0].unit === '公里' && D.tasks[0].qty === 3 && D.time === '07:00', '跑步模板应填好任务、单位和时间');
+  const D2 = T.newDraft(); T.applyTpl(D2, 'sleep');
+  ok(D2.days.join() === '0,1,2,3,4' && D2.tasks.length === 1, '早睡模板应只在周日到周四晚上');
+  ['read','english','milktea','gym'].forEach(id => { const d = T.newDraft(); T.applyTpl(d, id); ok(d.tasks.length && d.goalName && T.estMinutes(d.tasks) <= 60, '模板 ' + id + ' 应可用且不超过 60 分钟'); });
+  const D3 = T.newDraft(); T.applyTpl(D3, 'nope'); ok(D3.type === null, '未知模板不改草稿'); }
+{ const st = { v: 1, offset: 0, goal: null, ui: { tab: 'today' }, history: [], draft: { step: 1, type: null, goalName: '', pte: { now: 58, target: 65, exam: '2026-12-24', weak: 'speaking' }, days: [1,2,3,4,5,6], time: '20:00', tasks: [], stake: 300, mode: 'normal', pay: 'card', charity: 'amaze', agree: {} } };
+  r = run(st, '2026-11-12');
+  ok(['跑步','读书','学英语','早睡','戒奶茶','健身','从空白开始','PTE'].every(x => r.html.includes(x)), '选目标页应列出 PTE、6 个模板和空白目标'); }
 
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

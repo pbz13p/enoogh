@@ -68,6 +68,11 @@ p{margin:0 0 10px;line-height:1.6}
 .opt.on{border-color:var(--brand);background:var(--brand-tint)}
 .opt .t{font-weight:700;margin-bottom:2px}
 .opt .d{font-size:13px;color:var(--muted);line-height:1.5}
+.tplh{font-size:13px;color:var(--muted);margin:10px 2px -2px}
+.tplg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt.tpl{padding:12px}
+.opt.tpl .ic{font-size:22px;line-height:1;display:block;margin-bottom:6px}
+.opt.tpl .d{font-size:12px}
 label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
 input.in,select.in,textarea.in{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font-size:16px}
 textarea.in{min-height:84px;resize:vertical}
@@ -332,7 +337,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -358,9 +363,21 @@ function stepWelcome(){
 function stepType(D){
   return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
   '<button class="opt '+(D.type==='pte'?'on':'')+'" data-type="pte"><div class="row between"><div class="t">PTE 提分</div><span class="chip brand">推荐模板</span></div><div class="d">按你的目标分和弱项自动生成每日练习，附各题型技巧和官方资料。</div></button>'+
-  '<button class="opt '+(D.type==='custom'?'on':'')+'" data-type="custom"><div class="t">自定义目标</div><div class="d">雅思、健身、早起、读书……任务和数量你自己定。</div></button>'+
+  '<div class="tplh">常用模板 · 点一下自动填好，之后都能改</div><div class="tplg">'+GOAL_TPL.map(function(x){return '<button class="opt tpl '+(D.tpl===x.id?'on':'')+'" data-tpl="'+x.id+'"><span class="ic" aria-hidden="true">'+x.ic+'</span><div class="t">'+x.name+'</div><div class="d">'+esc(tplSummary(x))+'</div></button>';}).join('')+'</div>'+
+  '<button class="opt '+(D.type==='custom'&&!D.tpl?'on':'')+'" data-type="custom"><div class="t">从空白开始</div><div class="d">雅思、早起、练琴……任务、数量和单位你自己定。</div></button>'+
   '</div><div class="row" style="margin-top:18px"><button class="btn ghost" data-back>上一步</button>'+(D.type?'<button class="btn primary" style="flex:1" data-next>下一步</button>':'<p class="small muted" style="flex:1;align-self:center;margin:0">点一个开始</p>')+'</div>';
 }
+var GOAL_TPL=[ // 通用目标模板：选了自动填任务、单位、练习日和提醒时间
+ {id:'run',sub:'每次 3 公里',ic:'🏃',name:'跑步',days:[1,3,5,6],time:'07:00',tasks:[['跑步',3,'公里',25],['拉伸',10,'分钟',10]]},
+ {id:'read',sub:'每天 20 页',ic:'📖',name:'读书',days:[1,2,3,4,5,6],time:'21:30',tasks:[['读书',20,'页',30]]},
+ {id:'english',sub:'单词 + 听力',ic:'🎧',name:'学英语',days:[1,2,3,4,5,6],time:'20:00',tasks:[['背单词',20,'个',15],['听力 / 跟读',15,'分钟',15]]},
+ {id:'sleep',sub:'23:00 前上床',ic:'🌙',name:'早睡',days:[0,1,2,3,4],time:'22:30',tasks:[['23:00 前放下手机上床',1,'次',0]]},
+ {id:'milktea',sub:'一杯不喝',ic:'🧋',name:'戒奶茶',days:[1,2,3,4,5,6],time:'21:00',tasks:[['今天没喝奶茶',1,'天',0]]},
+ {id:'gym',sub:'力量 + 有氧',ic:'💪',name:'健身',days:[1,3,5],time:'19:00',tasks:[['力量训练',1,'次',40],['有氧',15,'分钟',15]]}];
+function tplSummary(x){return x.sub+' · 每周 '+x.days.length+' 天';}
+function applyTpl(D,id){var x=GOAL_TPL.filter(function(y){return y.id===id;})[0];if(!x)return D;
+  D.type='custom';D.tpl=id;D.goalName=x.name;D.days=x.days.slice();D.time=x.time;
+  D.tasks=x.tasks.map(function(t){return {name:t[0],qty:t[1],unit:t[2],mins:t[3]};});return D;}
 function buildPteTasks(D){
   var gap=D.pte.target-D.pte.now, f=gap<=5?0.7:1;
   return PTE_TEMPLATES[D.pte.weak].tasks.map(function(t){var q=Math.max(1,Math.round(t[1]*f));return {code:t[0],name:PTE[t[0]].n,qty:q,unit:PTE[t[0]].u};});
@@ -433,7 +450,8 @@ function bindOnboard(D){
   on('[data-next]','click',function(){D.step++;save();render();window.scrollTo(0,0);});
   on('[data-back]','click',function(){D.step--;save();render();window.scrollTo(0,0);});
   on('#whyUs','click',function(e){e.preventDefault();showCompare();});
-  on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t){D.type=t;D.tasks=[];}D.step=2;save();render();window.scrollTo(0,0);});
+  on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t||D.tpl){D.type=t;D.tasks=[];if(D.tpl){D.goalName='';D.tpl=null;D.days=[1,2,3,4,5,6];D.time='20:00';}}D.step=2;save();render();window.scrollTo(0,0);});
+  on('[data-tpl]','click',function(){var id=this.getAttribute('data-tpl');if(D.tpl!==id)applyTpl(D,id);D.step=2;save();render();window.scrollTo(0,0);toast('已按「'+D.goalName+'」填好，数量和日子都能改');});
   on('[data-day]','click',function(){var d=+this.getAttribute('data-day'),i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);save();render();});
   on('#pTime','change',function(){D.time=this.value;save();});
   ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
@@ -757,6 +775,23 @@ function viewLearn(){
 
 /* finished */
 function charityName(g){var c=CHARITIES.filter(function(x){return x.id===g.charity;})[0]||CHARITIES[0];return c.name;}
+function shareCard(g,rate,done,due,best,charged){ // 结营成绩图片卡：完成率圆环 + 连续天数 + 捐款，适合发朋友圈
+  var W=750,H=1000,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext&&c.getContext('2d');if(!x)return null;
+  var F='"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+  var bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#EAF6F4');bg.addColorStop(1,'#FFFFFF');x.fillStyle=bg;x.fillRect(0,0,W,H);
+  x.fillStyle='#fff';x.shadowColor='rgba(18,38,44,.08)';x.shadowBlur=40;x.shadowOffsetY=12;
+  x.beginPath();if(x.roundRect)x.roundRect(48,96,W-96,H-200,40);else x.rect(48,96,W-96,H-200);x.fill();x.shadowColor='transparent';
+  x.textAlign='center';x.fillStyle='#5A6B70';x.font='500 26px '+F;x.fillText(g.type==='pte'?'PTE 备考 · 4 周':(g.name||'我的目标')+' · 4 周',W/2,170);
+  var cx=W/2,cy=380,R=150;x.lineCap='round';x.lineWidth=26;x.strokeStyle='#E2ECEA';x.beginPath();x.arc(cx,cy,R,0,Math.PI*2);x.stroke();
+  if(rate>0){x.strokeStyle=rate>=80?'#0E9C8C':'#4AA3E0';x.beginPath();x.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*Math.min(rate,100)/100);x.stroke();}
+  x.fillStyle='#12262C';x.font='700 96px '+F;x.fillText(rate+'%',cx,cy+30);x.fillStyle='#5A6B70';x.font='26px '+F;x.fillText('完成率',cx,cy+78);
+  var cols=[[done+'/'+due,'做到的天数'],[best+' 天','最长连续'],[charged>0?money(charged):'$0','捐给慈善']];
+  cols.forEach(function(k,i){var px=48+(W-96)/6*(2*i+1);x.fillStyle='#12262C';x.font='700 42px '+F;x.fillText(k[0],px,660);x.fillStyle='#5A6B70';x.font='24px '+F;x.fillText(k[1],px,700);});
+  x.strokeStyle='#E2ECEA';x.lineWidth=2;x.beginPath();x.moveTo(96,760);x.lineTo(W-96,760);x.stroke();
+  x.fillStyle='#0A7A6E';x.font='600 30px '+F;x.fillText(rate===100?'全勤，说到做到。':rate>=80?'这 4 周，我几乎每天都在做。':'坚持了 '+done+' 天，下一期继续。',W/2,820);
+  if(charged>0){x.fillStyle='#5A6B70';x.font='22px '+F;x.fillText('漏练扣下的钱已全部捐给 '+charityName(g),W/2,860);}
+  x.fillStyle='#0E9C8C';x.font='700 30px '+F;x.fillText('Enoogh 一诺',W/2,H-50);x.fillStyle='#5A6B70';x.font='22px '+F;x.fillText('enoogh.com · 说到做到',W/2,H-18);
+  return c;}
 function renderFinished(){
   var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0,run=0,best=0;
   for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'||st==='excused'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
@@ -770,14 +805,16 @@ function renderFinished(){
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
-  '<button class="btn block" id="shareRes" style="margin-bottom:10px">分享我的成绩</button>'+
+  '<div class="row" style="margin-bottom:10px"><button class="btn block" id="shareImg" style="flex:1">生成成绩图片</button><button class="btn ghost" id="shareRes" style="flex:1">复制文字</button></div>'+
   '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
   document.getElementById('shareRes').onclick=function(){var tx=shareText(g,rate,done,due,best,T.charged),b=this;
-    function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='分享我的成绩';},2500);}
+    function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='复制文字';},2500);}
     if(navigator.share){navigator.share({title:'Enoogh 一诺',text:tx}).catch(function(){});}
     else if(navigator.clipboard){navigator.clipboard.writeText(tx).then(okMsg,function(){window.prompt('复制这段文字分享：',tx);});}
     else{window.prompt('复制这段文字分享：',tx);}};
+  document.getElementById('shareImg').onclick=function(){var cv=shareCard(g,rate,done,due,best,T.charged);if(!cv||!cv.toDataURL){toast('这个浏览器不支持生成图片，请用“复制文字”');return;}var url=cv.toDataURL('image/png');
+    sheet('<h2 style="margin-top:0">成绩图片</h2><img src="'+url+'" alt="成绩图片" style="width:100%;border-radius:14px;border:1px solid var(--line)"><p class="small muted" style="text-align:center;margin:10px 0">手机上长按图片即可保存或发给朋友</p><a class="btn primary block" download="enoogh-成绩.png" href="'+url+'">保存图片</a>');};
   document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=nextDraft(old,rate);save();render();window.scrollTo(0,0);};
 }
 
