@@ -251,5 +251,16 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
   r = run(st, '2026-11-12');
   ok(['跑步','读书','学英语','早睡','戒奶茶','健身','从空白开始','PTE'].every(x => r.html.includes(x)), '选目标页应列出 PTE、6 个模板和空白目标'); }
 
+// 打卡流程（任务→证据→打卡按钮）不被待扣款卡打断；完成率 0% 时圆环不画进度（不出现小圆点）
+{ let s2 = goal(); r = run(s2, '2026-11-11');
+  ok(r.html.indexOf('submitDay') >= 0 && r.html.indexOf('submitDay') < r.html.indexOf('待扣款'), '待扣款卡应排在打卡按钮之后');
+  ok(r.html.includes('0%') && !r.html.includes('stroke="#0E9C8C" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 '), '0% 时圆环不应画出进度小圆点'); }
+
+// 掉队但最近连续做到 ≥2 天：进度线标题显示“在追”，不只是“掉队了”
+{ let s3 = goal(); s3.goal.days['2026-11-10'] = { done: true }; s3.goal.days['2026-11-11'] = { done: true };
+  r = run(s3, '2026-11-12');
+  ok(r.html.includes('连续 2 天在追'), '掉队后连续做到 2 天应显示“在追”');
+  r = run(goal(), '2026-11-12'); ok(r.html.includes('掉队了') && !r.html.includes('天在追'), '一直没做时仍显示“掉队了”'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
