@@ -410,5 +410,6 @@ ok(code.includes("id=\"eAddPte\"") && code.includes('这个题型已经在计划
 { const sm2 = goal(); sm2.ui.tab = 'money'; const h = run(sm2, '2026-11-12').html; ok(h.includes('下次合并扣款：11月15日 周日 $45'), '承诺金页写明下次扣款日期和金额'); }
 { const sl2 = goal(); sl2.ui.tab = 'learn'; ok(run(sl2, '2026-11-12').html.includes('合计约占总分 15%'), 'PTE 提分页显示本周计划覆盖了多少分数权重'); }
 { const sd = goal(); sd.ui.tab = 'plan'; sd.goal.days['2026-11-09'] = { done: true }; ok(/data-cal="2026-11-09"/.test(run(sd, '2026-11-12').html) && !/data-cal="2026-11-20"/.test(run(sd, '2026-11-12').html), '日历上做过/漏了的日子可以点开看详情，未来的不能点'); }
+ok(html.includes("var st0=fromKey(w.s),ic={o:'✓',x:'✕',e:'假',r:'休',t:'·'}"), '监督人页有带日期的日历');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
