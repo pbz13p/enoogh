@@ -862,6 +862,9 @@ function icsText(g,t){
 /* 日历标准要求每行不超过 75 字节，超出要折行（中文 3 字节，不能拆开一个字） */
 function icsFold(line){var out='',n=0,cs=Array.from(line);for(var i=0;i<cs.length;i++){var c=cs[i],b=encodeURIComponent(c).replace(/%../g,'x').length;if(n+b>(out?74:75)){out+='\r\n ';n=0;}out+=c;n+=b;}return out;}
 /* 本期日历：28 天一眼看完，哪天做到、漏了、报备、休息 */
+function missDayTip(g){var c=[0,0,0,0,0,0,0],st0=fromKey(g.start);for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(st0,i);if(dayStatus(g,d)==='miss')c[d.getDay()]++;}
+  var m=0,wd=-1;c.forEach(function(n,i){if(n>m){m=n;wd=i;}});if(m<2)return '';
+  return '<div class="card tint small"><b>'+WD[wd]+'漏得最多（'+m+' 次）</b><div style="margin-top:4px">下一期可以把'+WD[wd]+'设成休息日，或者那天的量减半。</div></div>';}
 function cycleCal(g){var st0=fromKey(g.start),t=today(),ic={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''},lb={done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:''};
   var head='<div class="week cal-h">'+[0,1,2,3,4,5,6].map(function(i){return '<div class="small muted" style="text-align:center">'+WD[addDays(st0,i).getDay()].slice(1)+'</div>';}).join('')+'</div>';
   var h='';for(var w=0;w<4;w++){h+='<div class="week">';for(var i=0;i<7;i++){var d=addDays(st0,w*7+i),st=dayStatus(g,d),cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
@@ -995,7 +998,7 @@ function renderFinished(){
   $app.innerHTML=top()+'<div class="hero-ic"'+(rate>=80?'':' style="background:var(--sky)"')+'>'+LOGO_W+'</div><h1 style="margin-bottom:6px">'+title+'</h1>'+
   '<p class="muted" style="margin:0 0 14px">'+lead+'</p>'+
   '<div class="card"><div class="kv"><span>完成率</span><b>'+rate+'%（'+done+'/'+due+' 天）</b></div><div class="kv"><span>最长连续</span><b>'+best+' 天</b></div><div class="kv"><span>'+(g.pay==='prepay'?'退回给你':'承诺金未扣')+'</span><b>'+money(g.stake-T.charged)+'</b></div><div class="kv"><span>捐给慈善</span><b>'+money(T.charged)+'</b></div></div>'+
-  cycleCal(g)+
+  cycleCal(g)+missDayTip(g)+
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
