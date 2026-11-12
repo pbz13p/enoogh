@@ -76,6 +76,8 @@ p{margin:0 0 10px;line-height:1.6}
 label.f{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:0 0 6px}
 input.in,select.in,textarea.in{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;font-size:16px}
 textarea.in{min-height:84px;resize:vertical}
+
+.tsel{display:flex;align-items:center;gap:8px}.tsel select{flex:1;text-align:center}.tsep{font-weight:600;color:var(--muted)}
 input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
 .field{margin-bottom:14px}
 .task{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
@@ -302,6 +304,8 @@ function appealsLeft(g){return g.mode==='hard'?0:Math.max(0,2-g.appealsUsed);}
 /* ---------- ui helpers ---------- */
 var $app=document.getElementById('app');
 function toast(msg){document.querySelectorAll('.toast').forEach(function(x){x.remove();});var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
+/* 用户一开始填写（点输入框/下拉）就收起提示条，免得挡住正在填的那一行 */
+if(document.addEventListener)document.addEventListener('focusin',function(e){var n=e.target&&e.target.tagName;if(n==='INPUT'||n==='SELECT'||n==='TEXTAREA')document.querySelectorAll('.toast').forEach(function(x){x.remove();});});
 function sheet(html,onMount){
   var bg=document.createElement('div');bg.className='sheet-bg';
   bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'</div>';
@@ -309,6 +313,13 @@ function sheet(html,onMount){
   function close(){bg.remove();}
   document.body.appendChild(bg); if(onMount)onMount(bg.firstChild,close); return close;
 }
+/* 提醒时间：自己画 24 小时制的“时 : 分”两个下拉，避免英文系统显示 09:30 PM */
+function pad2(n){return (n<10?'0':'')+n;}
+function timeSel(id,val){var p=String(val||'20:00').split(':'),h=+p[0]||0,m=+p[1]||0,ms=[0,15,30,45];if(ms.indexOf(m)<0){ms.push(m);ms.sort(function(a,b){return a-b;});}
+  var hs=[];for(var i=0;i<24;i++)hs.push(i);
+  return '<div class="tsel"><select class="in" id="'+id+'" data-h aria-label="小时">'+hs.map(function(x){return '<option value="'+pad2(x)+'"'+(x===h?' selected':'')+'>'+pad2(x)+' 点</option>';}).join('')+'</select>'+
+  '<span class="tsep">:</span><select class="in" id="'+id+'M" aria-label="分钟">'+ms.map(function(x){return '<option value="'+pad2(x)+'"'+(x===m?' selected':'')+'>'+pad2(x)+' 分</option>';}).join('')+'</select></div>';}
+function readTime(root,id){var h=root.querySelector('#'+id),m=root.querySelector('#'+id+'M');h=h&&h.value;m=m&&m.value;return /^\d\d$/.test(h||'')&&/^\d\d$/.test(m||'')?h+':'+m:'';}
 function on(sel,ev,fn,root){(root||$app).querySelectorAll(sel).forEach(function(el){el.addEventListener(ev,fn);});}
 function top(ro){
   return '<div class="top">'+LOGO+'<div><div class="name">Enoogh <span class="muted small" style="font-weight:600">一诺</span></div><div class="sub">说到做到。做不到，就捐出去。</div></div><div class="spacer"></div></div>'+(ro?'':
@@ -347,7 +358,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -408,7 +419,7 @@ function stepPlan(D){
     h+='<div class="card"><div class="field" style="margin:0"><label class="f" for="gName">目标名称</label><input class="in" id="gName" placeholder="比如：每天健身、雅思口语" value="'+esc(D.goalName)+'"></div></div>';
   }
   h+='<div class="card"><h3>练习的日子</h3><div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'soft':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'">'+WD[d]+'</button>';}).join('')+'</div>'+
-  '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label><input class="in" id="pTime" type="time" value="'+D.time+'"></div></div>';
+  '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label>'+timeSel('pTime',D.time)+'</div></div>';
   h+='<div class="card"><div class="row between"><h3 style="margin:0">每次练习要做</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
   D.tasks.map(function(t,i){
     var del='<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button>';
@@ -467,7 +478,7 @@ function bindOnboard(D){
   on('[data-day]','click',function(){var d=+this.getAttribute('data-day'),i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);save();render();});
   on('#bumpPlan','click',function(){bumpPlan(D);save();render();toast('每项加了一点，下面都还能改');});
   on('#keepPlan','click',function(){D.carried='same';save();render();});
-  on('#pTime','change',function(){D.time=this.value;save();});
+  on('#pTime,#pTimeM','change',function(){D.time=readTime($app,'pTime')||D.time;save();});
   ['pNow','pTarget'].forEach(function(id){on('#'+id,'change',function(){var v=Math.max(10,Math.min(90,+this.value||0));if(id==='pNow')D.pte.now=v;else D.pte.target=v;D.tasks=buildPteTasks(D);save();render();});});
   on('#pExam','change',function(){D.pte.exam=this.value;save();});
   on('#pWeak','change',function(){D.pte.weak=this.value;D.tasks=buildPteTasks(D);save();render();});
@@ -762,7 +773,7 @@ function bindPlan(){
     function body(){
       return '<h2>修改下周计划</h2><p class="small muted">从下周（第 '+(w+2)+' 周）开始生效。</p>'+
       base.tasks.map(function(x,i){return '<div class="task"><div class="nm"><div class="t">'+esc(x.name)+'</div></div><div class="qty"><input class="in" data-eq="'+i+'" type="number" inputmode="numeric" min="0" value="'+x.qty+'" aria-label="'+esc(x.name)+' 数量"><span class="small muted">'+esc(x.unit)+'</span></div></div>';}).join('')+
-      '<p class="small muted">数量填 0 = 下周去掉这一项。</p><div class="field"><label class="f" for="eTime">提醒时间</label><input class="in" id="eTime" type="time" value="'+base.time+'"></div>'+
+      '<p class="small muted">数量填 0 = 下周去掉这一项。</p><div class="field"><label class="f" for="eTime">提醒时间</label>'+timeSel('eTime',base.time)+'</div>'+
       '<div id="eWarn"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="eSave">保存</button></div>';
     }
     sheet(body(),function(el,close){
@@ -771,7 +782,7 @@ function bindPlan(){
       warn();
       el.querySelectorAll('[data-eq]').forEach(function(inp){inp.oninput=function(){base.tasks[+inp.getAttribute('data-eq')].qty=Math.max(0,+inp.value||0);warn();};});
       el.querySelector('#eSave').onclick=function(){
-        base.time=el.querySelector('#eTime').value||base.time; base.tasks=base.tasks.filter(function(x){return x.qty>0;});
+        base.time=readTime(el,'eTime')||base.time; base.tasks=base.tasks.filter(function(x){return x.qty>0;});
         if(!base.tasks.length){toast('至少留一项任务');return;}
         g.plans=g.plans.filter(function(p){return p.fromWeek<=w;}); g.plans.push({fromWeek:w+1,plan:base}); save(); close(); render(); toast('已保存，下周生效');
       };

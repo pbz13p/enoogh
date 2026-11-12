@@ -268,5 +268,11 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
 // 确认页：点整行条款文字也能勾选（data-agree 放在整行上，按钮本身不重复绑定，避免点一下勾两次）
 { ok(/<div class="task agree" data-agree="/.test(html) && !/<button class="check[^>]*data-agree/.test(html), '确认条款整行可点、且不会重复切换'); }
 
+// 提醒时间：24 小时制“时 : 分”下拉，不用系统 time 控件（英文系统会显示 PM）
+{ const ts = r.ctx.window.__test.timeSel('pTime', '21:30');
+  ok(ts.includes('<option value="21" selected>21 点</option>') && ts.includes('<option value="30" selected>30 分</option>'), '提醒时间下拉选中当前时分');
+  ok(r.ctx.window.__test.timeSel('x', '07:05').includes('<option value="05" selected>05 分</option>'), '非整刻钟的旧时间也保留');
+  ok(!/type="time"/.test(html), '页面不再用系统 time 控件'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
