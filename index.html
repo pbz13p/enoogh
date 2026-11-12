@@ -942,7 +942,7 @@ function renderFinished(){
   var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0,run=0,best=0;
   for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
   var rate=due?Math.round(done/due*100):100, p=planFor(g,cycleEnd(g)), nd=p.days.length;
-  var title=rate===100?'全勤！说到做到 🎉':rate>=80?'做到了 '+rate+'%，很稳 👏':rate>=50?'坚持了 '+done+' 天，比开始时强':'这一期没跑顺，没关系';
+  var title=rate===100?'全勤！说到做到 🎉':rate>=80?'做到了 '+rate+'%，很稳 👏':rate>=50?'做到了 '+rate+'%，坚持了 '+done+' 天':'这一期没跑顺，没关系';
   var lead=rate>=95?'这 4 周你真的每天都在做。习惯已经开始长出来了。':rate>=80?'大多数日子你都做到了，偶尔漏一两天很正常。习惯已经开始长出来了。':rate>=50?'一半以上的日子你都做到了。下一期把计划调轻一点，会更顺。':'计划可能定得太满了。这不是你不行，是计划需要更贴合你的生活。';
   var tip=rate>=95?'<div class="card tint small"><b>下一期建议</b><div style="margin-top:4px">你已经很稳了。下一期可以每项加一点（约 20%），再开一期时一键就能加。</div></div>':rate>=80?'':'<div class="card tint small"><b>下一期建议</b><div style="margin-top:4px">'+(nd>3?'把每周练习从 '+nd+' 天减到 '+Math.max(3,nd-2)+' 天，':'')+'把每天的任务量减半。小一点、但每天都做到，比大计划更有用。</div></div>';
   $app.innerHTML=top()+'<div class="hero-ic"'+(rate>=80?'':' style="background:var(--sky)"')+'>'+LOGO_W+'</div><h1 style="margin-bottom:6px">'+title+'</h1>'+
