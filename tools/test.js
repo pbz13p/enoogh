@@ -237,6 +237,7 @@ ok(r.html.indexOf('只扣已漏的') > -1 && r.html.indexOf('只扣已漏的') <
 // 加到手机日历：.ics 每周重复，含练习日和提醒时间，到结营为止
 s = goal(); s.ui.tab = 'plan'; r = run(s, '2026-11-12');
 ok(r.html.includes('加到手机日历'), '计划页应有加到手机日历按钮');
+const r0ics = r;
 const ics = r.ctx.window.__test.icsText(r.saved.goal, new Date(2026, 10, 12));
 ok(ics.includes('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA;UNTIL=20261206') && ics.includes('DTSTART:20261112T200000') && ics.includes('BEGIN:VALARM'), '.ics 应按练习日每周重复到结营并带提醒');
 
@@ -326,5 +327,13 @@ ok(code.includes('第二天中午 12 点前要交'), '早睡/戒奶茶的确认�
 ok(html.includes('og:image') && fs.existsSync(path.join(__dirname,'..','icons','og.jpg')), '分享链接有预览图');
 ok(fs.existsSync(path.join(__dirname,'..','sw.js')) && code.includes("location.protocol==='https:'"), '正式网站离线也能打开');
 ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes('id=\"newGoal\"'), '结营页：80–94% 不说“每天都在做”，并可换一个目标');
+{ const g2 = JSON.parse(JSON.stringify(r0ics.saved.goal)); g2.name = '读书, 跑步; 早睡🌙'; g2.tpl = 'sleep';
+  g2.plans[0].plan.tasks = [{ name: '很长很长的任务名字'.repeat(6) + ',x', qty: 1, unit: '次' }];
+  const t2 = r0ics.ctx.window.__test.icsText(g2, new Date(2026, 10, 12));
+  if (process.env.DUMP_ICS) fs.writeFileSync(process.env.DUMP_ICS, t2);
+  const lines = t2.split('\r\n');
+  ok(lines.every(l => Buffer.byteLength(l) <= 75), '.ics 每行不超过 75 字节');
+  const unfold = t2.replace(/\r\n /g, '');
+  ok(unfold.includes('SUMMARY:一诺打卡：读书\\, 跑步\\; 早睡🌙') && unfold.includes('最晚第二天中午 12 点'), '.ics 逗号分号已转义，早睡写明次日中午截止'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -774,14 +774,17 @@ function icsText(g,t){
   for(var i=0;i<7;i++){var d=addDays(t,i);if(p.days.indexOf(d.getDay())>=0){first=d;break;}}
   if(!first||!p.days.length)return '';
   var ymd=function(d){return key(d).replace(/-/g,'');}, end=cycleEnd(g);
-  var desc=p.tasks.map(function(x){return x.name+' '+x.qty+' '+x.unit;}).join('\\n')+'\\n做完回 enoogh.com 打卡，23:59 截止。';
+  var esc1=function(v){return String(v).replace(/\\/g,'\\\\').replace(/[,;]/g,function(c){return '\\'+c;}).replace(/\r?\n/g,'\\n');};
+  var desc=p.tasks.map(function(x){return esc1(x.name+' '+x.qty+' '+x.unit);}).join('\\n')+'\\n做完回 enoogh.com 打卡'+(GRACE_HOUR[g.tpl]?'，最晚第二天中午 12 点。':'，23:59 截止。');
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Enoogh//CN','CALSCALE:GREGORIAN','BEGIN:VEVENT',
     'UID:enoogh-'+g.id+'-'+key(t)+'@enoogh.com','DTSTAMP:'+ymd(t)+'T000000Z',
     'DTSTART:'+ymd(first)+'T'+pad(+tm[0])+pad(+tm[1])+'00','DURATION:PT30M',
     'RRULE:FREQ=WEEKLY;BYDAY='+p.days.map(function(d){return BD[d];}).join(',')+';UNTIL='+ymd(end)+'T235959',
-    'SUMMARY:一诺打卡：'+g.name,'DESCRIPTION:'+desc,
-    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:该练了','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+    'SUMMARY:一诺打卡：'+esc1(g.name),'DESCRIPTION:'+desc,
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:该练了','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].map(icsFold).join('\r\n');
 }
+/* 日历标准要求每行不超过 75 字节，超出要折行（中文 3 字节，不能拆开一个字） */
+function icsFold(line){var out='',n=0,cs=Array.from(line);for(var i=0;i<cs.length;i++){var c=cs[i],b=encodeURIComponent(c).replace(/%../g,'x').length;if(n+b>(out?74:75)){out+='\r\n ';n=0;}out+=c;n+=b;}return out;}
 function viewPlan(){
   var g=S.goal,t=today(),w=weekIndex(g,t),cur=planFor(g,t),next=g.plans.filter(function(p){return p.fromWeek>w;})[0];
   var h='<h1>计划</h1>';
