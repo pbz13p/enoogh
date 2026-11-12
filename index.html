@@ -719,7 +719,7 @@ function viewToday(){
     h+='<div class="card tint"><div class="row between" style="align-items:flex-start"><div style="flex:1"><h2 style="margin:0 0 6px">今天完成了 ✓</h2><p class="small muted" style="margin:0;line-height:1.6">打卡时间 '+esc(r.doneAt||'')+(np?'<br>'+np.label+' '+esc(np.time)+' 提醒你':'')+'</p></div>'+
       (sk>=2?'<div class="streak" aria-label="连续做到 '+sk+' 天"><b>'+sk+'</b><span>天连续</span></div>':'')+'</div>'+
       (sk>=2?'<p class="small" style="margin:12px 0 0;padding-top:10px;border-top:1px solid #CFE7E3">'+(sk>=7?'连续 '+sk+' 天了，习惯正在成形。':'连续 '+sk+' 天做到，别让这串数字断掉。')+'</p>':'')+'</div>'+
-      (np?'<div class="card"><h3 style="margin:0 0 8px">'+np.label+'要做</h3>'+np.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('')+'</div>':'')+proofView(r);
+      (np?'<div class="card"><h3 style="margin:0 0 8px">'+np.label+'要做</h3>'+np.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('')+'</div>':'')+proofView(r)+(diffDays(t,today())===0?'<p class="small muted" style="text-align:center;margin:4px 0 12px"><a href="#" id="undoDone">点错了？撤回今天的打卡</a></p>':'');
   } else if(st==='excused'){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
@@ -751,6 +751,7 @@ var recState=null;
 function bindToday(){
   var g=S.goal, k=key(shownDay()), r=rec(g,k), wasLate=k!==key(today());
   on('#pledgeTick','click',function(){r.pledge=!r.pledge;save();render();});
+  on('#undoDone','click',function(e){e.preventDefault();r.done=false;delete r.doneAt;save();render();toast('已撤回，做完再打卡');});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});

@@ -375,5 +375,7 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   const h = run(shh, '2026-11-12').html; ok(h.includes('以前的几期') && h.includes('累计捐出 $75') && h.includes('82% · 捐 $75') && !h.includes('<b>x'), '承诺金页列出以前几期和累计捐款'); }
 { const sq = goal(); sq.goal.pay = 'prepay'; sq.ui.tab = 'money'; ok(run(sq, '2026-11-12').html.includes('从你预付的承诺金里合并扣'), '预付用户的常见问题讲预付怎么扣、怎么退'); }
 { const sc = goal(); sc.ui.tab = 'money'; ok(run(sc, '2026-11-12').html.includes('href="https://www.amaze.org.au'), '承诺金页的慈善机构可以点开官网'); }
+{ const su = goal(); su.goal.start = '2026-11-12'; su.goal.days['2026-11-12'] = { done: true, doneAt: '20:10' }; ok(run(su, '2026-11-12').html.includes('撤回今天的打卡'), '当天打卡后可以撤回');
+  su.goal.days['2026-11-13'] = { done: true }; ok(!run(su, '2026-11-14').html.includes('撤回今天的打卡'), '没打卡的日子不显示撤回'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
