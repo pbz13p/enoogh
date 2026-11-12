@@ -892,10 +892,11 @@ function viewPlan(){
   // weekly review on Saturday/Sunday or any time: this week's numbers
   var mon=addDays(t,-((t.getDay()+6)%7)),done=0,miss=0,ex=0;
   for(var i=0;i<7;i++){var d=addDays(mon,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done')done++;if(st==='miss')miss++;if(st==='excused')ex++;}
+  var lw=0,lwOk=false;for(var j=0;j<7;j++){var dl=addDays(mon,j-7);if(inCycle(g,dl)){lwOk=true;if(dayStatus(g,dl)==='done')lw++;}}
   var isReview=t.getDay()===6||t.getDay()===0;
   h+='<div class="card'+(isReview?' tint':'')+'"><div class="row between"><h2 style="margin:0">本周复盘</h2>'+(isReview?'<span class="chip brand">周末复盘时间</span>':'<span class="chip grey">周六晚复盘</span>')+'</div>'+
   '<div class="grid3" style="margin-top:12px;text-align:center"><div><div class="money" style="font-size:24px">'+done+'</div><div class="small muted">完成</div></div><div><div class="money" style="font-size:24px;color:var(--bad)">'+miss+'</div><div class="small muted">漏练</div></div><div><div class="money" style="font-size:24px;color:#1D6FA8">'+ex+'</div><div class="small muted">申诉/报备</div></div></div>'+
-  (miss?'<p class="small" style="margin:12px 0 0">漏练的那天，是计划太满，还是时间不对？在下面改下周计划。</p>':'<p class="small muted" style="margin:12px 0 0">'+(done?'保持住。如果太轻松，下周可以加一点量。':'本周刚开始。')+'</p>')+'</div>';
+  (lwOk&&(done||lw)?'<p class="small" style="margin:12px 0 0">'+(done>lw?'比上周多做到 '+(done-lw)+' 天 👍':done===lw?'和上周一样做到 '+done+' 天。':'上周做到 '+lw+' 天，这周还有机会追上。')+'</p>':'')+(miss?'<p class="small" style="margin:12px 0 0">漏练的那天，是计划太满，还是时间不对？在下面改下周计划。</p>':'<p class="small muted" style="margin:12px 0 0">'+(done?'保持住。如果太轻松，下周可以加一点量。':'本周刚开始。')+'</p>')+'</div>';
   h+=cycleCal(g)+missDayTip(g,true);
   h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+
   '<button class="btn soft block" style="margin-top:12px" id="addCal">'+(S.ui.calDone?'✓ 已加到日历 · 再加一次':'📅 加到手机日历（练习日 '+esc(cur.time)+' 提醒）')+'</button><p class="small muted" style="margin:6px 0 0;text-align:center">练习日自动重复到结营；改了提醒时间再加一次即可</p></div>';
