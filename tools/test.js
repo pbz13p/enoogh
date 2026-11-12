@@ -291,5 +291,14 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
 // 计划页选星期：一行 7 格、选中为实心主色，标题用通用说法（不写“练习”）
 { ok(/class="wkpick"/.test(html) && /\.wkpick\{display:grid;grid-template-columns:repeat\(7,1fr\)/.test(html), '选星期一行 7 格'); ok(html.includes('<h3>哪几天做</h3>') && !html.includes('每次练习要做'), '计划页标题不写死“练习”'); }
 
+// 第一天圆环不再重复“第 1 天”：还没有该做的日子时显示今天任务完成几项
+{ ok(!html.includes('刚起步') && /'<b>'\+tdid\+'\/'\+tn\+'<\/b><span>今天任务<\/span>'/.test(html), '第一天圆环显示今天任务进度，不重复“第几天”'); }
+
+// 打卡按钮下的提示说清还差什么（之前只写“再交证据。”，看不懂）
+{ const hs = html.match(/function ckHint[^\n]*/);
+  const f = new Function('return (' + hs[0].replace('function ckHint', 'function') + ')')();
+  ok(f(2, false) === '还差 2 项没勾，再交上证据就能打卡。' && f(1, true) === '还差 1 项没勾，勾完就能打卡。' && f(0, false) === '就差最后一步：交上证据就能打卡。', '打卡提示说清还差几项、还差证据');
+  ok(!html.includes('再交证据。'), '不再出现看不懂的“再交证据。”'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

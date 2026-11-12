@@ -625,10 +625,12 @@ function viewWitness(w){
   '<div class="card tint small"><b>监督人可以做什么？</b><div style="margin-top:4px">每周问 TA 一句“这周怎么样？”，让 TA 再发一次新链接给你。有人在看，人就更容易做到。'+(w.c?'TA 漏练扣下的承诺金会全部捐给 '+esc(w.c)+'。':'')+'</div></div>'+
   '<button class="btn primary block" id="wMine">我也想定一个目标</button>';
 }
+function ckHint(left,proofOk){return left?'还差 '+left+' 项没勾'+(proofOk?'，勾完就能打卡。':'，再交上证据就能打卡。'):'就差最后一步：交上证据就能打卡。';}
 function viewToday(){
   var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
-  var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(cs.due&&rate>0?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(cs.due?C*rate/100:0)+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':'<b style="font-size:17px">第 '+Math.max(1,cs.day)+' 天</b><span>刚起步</span>')+'</div></div>'+
+  var tn=(!cs.due&&p&&p.tasks)?p.tasks.length:0, tdid=tn?p.tasks.filter(function(x,i){return r.tasks&&r.tasks[i];}).length:0, ringPct=cs.due?rate:(tn?Math.round(tdid/tn*100):0);
+  var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(ringPct>0?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C*ringPct/100+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':tn?'<b>'+tdid+'/'+tn+'</b><span>今天任务</span>':'<b>—</b><span>完成率</span>')+'</div></div>'+
   '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
   '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+progressLine(g)+'</div>';
   var justCard='';
@@ -663,7 +665,7 @@ function viewToday(){
       h+='<div style="margin-top:14px"><div class="rec" id="recBox">'+(r.audio?'<audio controls src="'+r.audio+'" style="max-width:100%"></audio><button class="btn small ghost" id="recAgain">重录</button>':'<button class="btn small soft" id="recStart">🎙 开始录音（30 秒）</button><button class="btn small ghost" id="audioFile">上传录音文件</button>')+'</div></div>';
     }
     h+='<button class="btn primary block" style="margin-top:16px" id="submitDay" '+(all&&proofOk?'':'disabled')+'>打卡完成</button>'+
-    '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all?'':'先把任务全部勾上。')+(proofOk?'':(all?'':' ')+'再交证据。')+'</p></div>';
+    '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk))+'</p></div>';
     if(g.mode!=='hard')h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
