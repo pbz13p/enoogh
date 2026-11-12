@@ -412,5 +412,7 @@ ok(code.includes("id=\"eAddPte\"") && code.includes('这个题型已经在计划
 { const sd = goal(); sd.ui.tab = 'plan'; sd.goal.days['2026-11-09'] = { done: true }; ok(/data-cal="2026-11-09"/.test(run(sd, '2026-11-12').html) && !/data-cal="2026-11-20"/.test(run(sd, '2026-11-12').html), '日历上做过/漏了的日子可以点开看详情，未来的不能点'); }
 ok(html.includes("var st0=fromKey(w.s),ic={o:'✓',x:'✕',e:'假',r:'休',t:'·'}"), '监督人页有带日期的日历');
 { const T = run(null, '2026-11-12').ctx.window.__test; const h = T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: 'x', s: '2026-11-09', a: '2026-11-12', d: 'oex' + 'f'.repeat(25), c: '' })))); ok(h.includes('做到 1 天'), '监督人页：申诉的日子不算“做到”，和 App 里一致'); }
+{ const T = run(null, '2026-11-12').ctx.window.__test; const mk = d => T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: 'x', s: '2026-11-09', a: '2026-11-11', d: d, c: '' }))));
+  ok(mk('oot' + 'f'.repeat(25)).includes('11月11日：还没打卡') && mk('ooo' + 'f'.repeat(25)).includes('11月11日：✓ 已经打卡'), '监督人页开头写快照那天有没有打卡'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
