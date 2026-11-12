@@ -380,5 +380,6 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
 ok(code.includes("addEventListener('visibilitychange'") && code.includes('k!==lastDay'), '页面放过夜回来会按新的一天重算');
 { const sc = goal(); sc.ui.tab = 'plan'; const h = run(sc, '2026-11-12').html; ok(h.includes('本期日历') && (h.match(/class="day /g) || []).length >= 28, '计划页有 28 天日历'); }
 ok(html.includes("'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'"), '押金页写明全漏最多扣多少');
+{ const se2 = goal(); se2.goal.start = '2026-11-12'; se2.goal.days['2026-11-12'] = { excused: true, reason: '生病了' }; const h = run(se2, '2026-11-12').html; ok(h.includes('今天已报备') && h.includes('明天 20:00 要做'), '报备后显示明天要做什么'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
