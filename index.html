@@ -404,7 +404,7 @@ function stepWelcome(){
   '<div class="how"><div class="n">2</div><div><b>每天打卡交证据</b><div class="muted small">截图、照片或录音都行，留着证据，申诉时有据可查。</div></div></div>'+
   '<div class="how"><div class="n">3</div><div><b>漏一天扣一小笔，全部捐出</b><div class="muted small">扣前 24 小时通知，生病急事可以申诉。</div></div></div></div>'+
   '<button class="btn primary block" data-next>开始定目标</button>'+
-  '<p class="small muted" style="margin-top:12px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>';
+  '<p class="small muted" style="margin:12px 0 0;text-align:center">扣下的钱捐给 '+CHARITIES.map(function(c){return esc(c.name.split('（')[0]);}).join(' 或 ')+'（孤独症慈善机构），由你选。</p>'+'<p class="small muted" style="margin-top:6px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>';
 }
 function stepType(D){
   return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
