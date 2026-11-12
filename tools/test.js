@@ -285,5 +285,11 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
   const r2 = run(s2, '2026-11-11');
   ok(r2.html.includes('做到 0 天') && !r2.html.includes('做到 1 天'), '申诉日不算做到的天数'); }
 
+// 打开弹窗时先收起提示条（提示条层级比弹窗高，会盖住申诉原因输入框）
+{ ok(/function sheet\(html,onMount\)\{\s*document\.querySelectorAll\('\.toast'\)\.forEach/.test(html), '打开弹窗时收起提示条'); }
+
+// 计划页选星期：一行 7 格、选中为实心主色，标题用通用说法（不写“练习”）
+{ ok(/class="wkpick"/.test(html) && /\.wkpick\{display:grid;grid-template-columns:repeat\(7,1fr\)/.test(html), '选星期一行 7 格'); ok(html.includes('<h3>哪几天做</h3>') && !html.includes('每次练习要做'), '计划页标题不写死“练习”'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

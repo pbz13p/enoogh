@@ -61,6 +61,7 @@ p{margin:0 0 10px;line-height:1.6}
 .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
 .btn.soft{background:var(--brand-tint);color:var(--brand-ink)}
 .btn.danger{background:#fff;border:1px solid #F3C9C6;color:var(--bad)}
+.wkpick{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:12px}.wkpick .btn{padding:0;min-height:44px;font-size:15px;border-radius:12px}.wkpick .btn.on{background:var(--brand);color:#fff;border:1px solid var(--brand);font-weight:700}
 .btn.small{min-height:36px;padding:6px 12px;font-size:14px;border-radius:10px}
 .btn.block{width:100%}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
@@ -307,6 +308,7 @@ function toast(msg){document.querySelectorAll('.toast').forEach(function(x){x.re
 /* 用户一开始填写（点输入框/下拉）就收起提示条，免得挡住正在填的那一行 */
 if(document.addEventListener)document.addEventListener('focusin',function(e){var n=e.target&&e.target.tagName;if(n==='INPUT'||n==='SELECT'||n==='TEXTAREA')document.querySelectorAll('.toast').forEach(function(x){x.remove();});});
 function sheet(html,onMount){
+  document.querySelectorAll('.toast').forEach(function(x){x.remove();});
   var bg=document.createElement('div');bg.className='sheet-bg';
   bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'</div>';
   bg.addEventListener('click',function(e){if(e.target===bg)close();});
@@ -333,7 +335,7 @@ function bindTop(){
 /* ---------- onboarding ---------- */
 function planMissing(D){var m=[];
   if(D.type!=='pte'&&!(D.goalName||'').trim())m.push('目标名称');
-  if(!D.days.length)m.push('练习的日子');
+  if(!D.days.length)m.push('哪几天做');
   if(!D.tasks.length)m.push('至少一项任务');
   else{if(D.tasks.some(function(t){return !(t.name||'').trim();}))m.push('任务名称');
     if(D.tasks.some(function(t){return !(t.qty>0);}))m.push('任务数量');}
@@ -418,9 +420,9 @@ function stepPlan(D){
   } else {
     h+='<div class="card"><div class="field" style="margin:0"><label class="f" for="gName">目标名称</label><input class="in" id="gName" placeholder="比如：每天健身、雅思口语" value="'+esc(D.goalName)+'"></div></div>';
   }
-  h+='<div class="card"><h3>练习的日子</h3><div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'soft':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'">'+WD[d]+'</button>';}).join('')+'</div>'+
+  h+='<div class="card"><h3>哪几天做</h3><div class="wkpick">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'on':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'" aria-label="'+WD[d]+'">'+WD[d].slice(1)+'</button>';}).join('')+'</div>'+
   '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label>'+timeSel('pTime',D.time)+'</div></div>';
-  h+='<div class="card"><div class="row between"><h3 style="margin:0">每次练习要做</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
+  h+='<div class="card"><div class="row between"><h3 style="margin:0">每次要做</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
   D.tasks.map(function(t,i){
     var del='<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button>';
     if(!t.code)return '<div class="task ctask"><div class="row" style="gap:8px"><input class="in" data-tname="'+i+'" placeholder="任务名称，比如：跑步" value="'+esc(t.name)+'" style="min-height:42px;flex:1;min-width:0">'+del+'</div>'+
