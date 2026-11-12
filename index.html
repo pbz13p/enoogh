@@ -796,10 +796,11 @@ function appealSheet(kind,dayKey){
   var opts=kind==='pending'?appealDays(g):[];
   var pick=opts.length>1?'<div class="field"><label class="f">申诉哪一天</label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+opts.map(function(l){var d=fromKey(l.day);return '<button type="button" class="opt apd'+(l.day===dayKey?' on':'')+'" data-day="'+l.day+'" style="padding:10px 6px;text-align:center"><div class="t">'+WD[d.getDay()]+'</div><div class="d">'+fmt(d)+' · '+money(l.amt)+'</div></button>';}).join('')+'</div></div>':'';
   sheet('<h2 id="apTitle">'+(kind==='today'?'今天报备':opts.length>1?'申诉一天漏练':'申诉 '+fmt(fromKey(dayKey))+' 的漏练')+'</h2><p class="small muted">本期还剩 '+appealsLeft(g)+' 次，每次申诉一天。正式版由真人审核，通常几小时内回复。</p>'+pick+
-  '<div class="field"><label class="f" for="reason">原因</label><textarea class="in" id="reason" placeholder="比如：发烧去看医生了"></textarea></div>'+
+  '<div class="field"><label class="f" for="reason">原因</label><div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px">'+['生病了','家里有急事','临时出差'].map(function(x){return '<button type="button" class="btn small ghost rq">'+x+'</button>';}).join('')+'</div><textarea class="in" id="reason" placeholder="比如：发烧去看医生了"></textarea></div>'+
   '<div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="sendAppeal">提交</button></div>',function(el,close){
     el.querySelector('[data-close]').onclick=close;
     Array.prototype.forEach.call(el.querySelectorAll('.apd'),function(b){b.onclick=function(){dayKey=b.dataset.day;Array.prototype.forEach.call(el.querySelectorAll('.apd'),function(x){x.classList.toggle('on',x===b);});};});
+    Array.prototype.forEach.call(el.querySelectorAll('.rq'),function(q){q.onclick=function(){var ta=el.querySelector('#reason');ta.value=q.textContent+(ta.value&&ta.value.indexOf(q.textContent)<0?'，'+ta.value:'');};});
     el.querySelector('#sendAppeal').onclick=function(){
       var v=el.querySelector('#reason').value.trim(); if(v.length<2){toast('写一句原因');return;}
       var r=rec(g,dayKey); r.excused=true; r.reason=v; g.appealsUsed++;
