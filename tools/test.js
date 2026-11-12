@@ -373,5 +373,6 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   D.pte.target = 65; D.pte.exam = '2026-11-01'; ok(T.planMissing(D).includes('考试日期（要在今天之后）'), '考试日期在过去要拦'); }
 { const shh = goal(); shh.ui.tab = 'money'; shh.history = [{ name: '读书', rate: 82, charged: 75, end: '2026-11-08' }, { name: '<b>x', rate: 100, charged: 0, end: '2026-10-10' }];
   const h = run(shh, '2026-11-12').html; ok(h.includes('以前的几期') && h.includes('累计捐出 $75') && h.includes('82% · 捐 $75') && !h.includes('<b>x'), '承诺金页列出以前几期和累计捐款'); }
+{ const sq = goal(); sq.goal.pay = 'prepay'; sq.ui.tab = 'money'; ok(run(sq, '2026-11-12').html.includes('从你预付的承诺金里合并扣'), '预付用户的常见问题讲预付怎么扣、怎么退'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
