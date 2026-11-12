@@ -570,7 +570,7 @@ function weekStrip(g){
 }
 function cycleStats(g){
   var t=today(),start=fromKey(g.start),done=0,due=0;
-  for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done'||st==='excused'){done++;due++;}else if(st==='miss'){due++;}else if(st==='todo'){due+=0;}}
+  for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i);if(diffDays(d,t)<0)break;var st=dayStatus(g,d);if(st==='done'){done++;due++;}else if(st==='miss'){due++;}else if(st==='todo'){due+=0;}}
   return {done:done,due:due,day:diffDays(start,t)+1};
 }
 /* 上一个练习日漏了：不责备，给一个最小的起点，帮他今天回来（“别连漏两天”） */
@@ -587,7 +587,7 @@ function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '
 function projection(g){
   var t=today(),start=fromKey(g.start),done=0,miss=0,left=0;
   for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i),st=dayStatus(g,d);
-    if(st==='done'||st==='excused')done++;else if(st==='miss')miss++;else if(st==='todo'||st==='future')left++;}
+    if(st==='done')done++;else if(st==='miss')miss++;else if(st==='todo'||st==='future')left++;}
   var past=done+miss, rate=past?miss/past:0, more=Math.round(rate*left);
   var T=totals(g), charged=T.charged+T.pending;
   var proj=Math.min(g.stake,charged+more*perMiss(g));
@@ -848,7 +848,7 @@ function shareCard(g,rate,done,due,best,charged){ // 结营成绩图片卡：完
   return c;}
 function renderFinished(){
   var g=S.goal,T=totals(g),start=fromKey(g.start),done=0,due=0,run=0,best=0;
-  for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'||st==='excused'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
+  for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
   var rate=due?Math.round(done/due*100):100, p=planFor(g,cycleEnd(g)), nd=p.days.length;
   var title=rate===100?'全勤！说到做到 🎉':rate>=80?'做到了 '+rate+'%，很稳 👏':rate>=50?'坚持了 '+done+' 天，比开始时强':'这一期没跑顺，没关系';
   var lead=rate>=80?'这 4 周你真的每天都在做。习惯已经开始长出来了。':rate>=50?'一半以上的日子你都做到了。下一期把计划调轻一点，会更顺。':'计划可能定得太满了。这不是你不行，是计划需要更贴合你的生活。';

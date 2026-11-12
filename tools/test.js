@@ -280,5 +280,10 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
 // 漏练后“回来”提示：只有一项任务时不说“第一项”
 { ok(/p\.tasks\.length>1\?'先只做第一项':'现在就开始'/.test(html), '只有一项任务时回来提示不说“第一项”'); }
 
+// 申诉通过的日子不算“做到”，也不算进分母（之前一天没做、只申诉了一天也显示“做到 1 天”、完成率 33%）
+{ const s2 = goal(); s2.goal.days['2026-11-10'] = { excused: true, reason: '发烧' }; s2.goal.appealsUsed = 1;
+  const r2 = run(s2, '2026-11-11');
+  ok(r2.html.includes('做到 0 天') && !r2.html.includes('做到 1 天'), '申诉日不算做到的天数'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
