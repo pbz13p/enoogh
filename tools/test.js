@@ -417,5 +417,6 @@ ok(html.includes("var st0=fromKey(w.s),ic={o:'✓',x:'✕',e:'假',r:'休',t:'·
 { const sp2 = goal(); sp2.goal.start = '2026-11-12'; sp2.goal.pte.exam = '2026-11-11'; ok(run(sp2, '2026-11-12').html.includes('考得怎么样？'), '考后今天页问成绩');
   sp2.goal.pte.result = 66; ok(run(sp2, '2026-11-12').html.includes('达到目标 65'), '记了成绩显示是否达标'); }
 { const se3 = goal(); se3.ui.tab = 'learn'; se3.goal.pte.exam = '2026-11-26'; ok(run(se3, '2026-11-12').html.includes('离考试还有 14 天') && run(se3, '2026-11-12').html.includes('官方模考'), '考前 3 周提分页给阶段建议'); }
+{ const ss = goal(); ss.goal.days['2026-11-14'] = { done: true }; ok(run(ss, '2026-11-14').html.includes('周六了，花 1 分钟看看这周'), '周六打完卡提示去复盘'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
