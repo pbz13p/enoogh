@@ -696,7 +696,7 @@ function parseWitness(hash){try{if(!hash||hash.indexOf('#w=')!==0)return null;va
   return {n:o.n.slice(0,40),s:o.s,a:o.a,d:o.d,c:typeof o.c==='string'?o.c.slice(0,40):''};}catch(e){return null;}}
 function viewWitness(w){
   var done=0,miss=0,left=0,dots='',map={o:'ok',x:'x',e:'ex',t:'now'};
-  w.d.split('').forEach(function(c){if(c==='r')return;if(c==='o'||c==='e')done++;else if(c==='x')miss++;else left++;dots+='<i class="'+(map[c]||'')+'"></i>';});
+  w.d.split('').forEach(function(c){if(c==='r')return;if(c==='o')done++;else if(c==='x')miss++;else if(c!=='e')left++;dots+='<i class="'+(map[c]||'')+'"></i>';});
   var a=fromKey(w.a),on=!miss;
   return '<div class="hero-ic">'+LOGO_W+'</div><h1 style="margin-bottom:6px">「'+esc(w.n)+'」</h1>'+
   '<p class="muted" style="margin:0 0 14px">你的朋友请你当监督人。这是 TA 截至 '+(a.getMonth()+1)+'月'+a.getDate()+'日 的打卡进度（只读快照）。</p>'+
