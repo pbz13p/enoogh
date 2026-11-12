@@ -360,5 +360,7 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   let h = run(sm, '2026-11-12').html; ok(h.includes('诚信打卡') && !h.includes('交打卡证据') && h.includes('勾上承诺'), '戒奶茶用诚信承诺代替照片');
   sm.goal.days['2026-11-12'] = { tasks: { 0: true }, pledge: true }; h = run(sm, '2026-11-12').html;
   ok(/id="submitDay" >/.test(h) || /id="submitDay" (?!disabled)/.test(h), '勾了承诺就能打卡'); }
+{ const sh = goal(); sh.goal.mode = 'hard'; sh.goal.pay = 'prepay'; sh.ui.tab = 'money'; const h = run(sh, '2026-11-12').html;
+  ok(!h.includes('可申诉') && h.includes('结营时能退回给你的承诺金'), '硬核模式不写“可申诉”；预付写“能退回给你”'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -868,10 +868,10 @@ function bindPlan(){
 /* money */
 function viewMoney(){
   var g=S.goal,T=totals(g),ch=CHARITIES.filter(function(c){return c.id===g.charity;})[0]||CHARITIES[0];
-  var h='<h1>承诺金</h1><div class="card"><div class="small muted">还在你这边的承诺金</div><div class="money">'+money(T.left)+'</div><div class="bar" style="margin:10px 0 4px" aria-hidden="true"><i style="width:'+(T.left/g.stake*100)+'%"></i></div><div class="small muted">共 '+money(g.stake)+' · 漏一天扣 '+money(perMiss(g))+'</div></div>';
+  var h='<h1>承诺金</h1><div class="card"><div class="small muted">'+(g.pay==='prepay'?'结营时能退回给你的承诺金':'还在你这边的承诺金')+'</div><div class="money">'+money(T.left)+'</div><div class="bar" style="margin:10px 0 4px" aria-hidden="true"><i style="width:'+(T.left/g.stake*100)+'%"></i></div><div class="small muted">共 '+money(g.stake)+' · 漏一天扣 '+money(perMiss(g))+'</div></div>';
   h+='<div class="card"><div class="kv"><span>付款方式</span><b>'+(g.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(g.mode==='hard'?'硬核':'普通 · 剩 '+appealsLeft(g)+' 次申诉')+'</b></div>'+
-  '<div class="kv"><span>已扣（将捐出）</span><b>'+money(T.charged)+'</b></div><div class="kv"><span>待扣（可申诉）</span><b>'+money(T.pending)+'</b></div>'+
+  '<div class="kv"><span>已扣（将捐出）</span><b>'+money(T.charged)+'</b></div><div class="kv"><span>'+(g.mode==='hard'||!appealsLeft(g)?'待扣':'待扣（可申诉）')+'</span><b>'+money(T.pending)+'</b></div>'+
   '<div class="kv"><span>捐给</span><b>'+ch.name+'</b></div><div class="kv"><span>服务费（我们的收入）</span><b>'+money(g.fee)+'</b></div></div>';
   h+='<div class="card"><h2>扣款记录</h2>'+(g.ledger.filter(function(l){return l.status!=='void';}).length?g.ledger.filter(function(l){return l.status!=='void';}).slice().reverse().map(function(l){return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+money(l.amt)+' <span class="chip '+(l.status==='charged'?'grey':'bad')+'">'+(l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
   h+='<div class="card faq"><h2>常见问题</h2>'+[
