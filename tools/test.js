@@ -420,5 +420,6 @@ ok(html.includes("var st0=fromKey(w.s),ic={o:'✓',x:'✕',e:'假',r:'休',t:'·
 { const ss = goal(); ss.goal.days['2026-11-14'] = { done: true }; ok(run(ss, '2026-11-14').html.includes('周六了，花 1 分钟看看这周'), '周六打完卡提示去复盘'); }
 { const sw3 = goal(); sw3.ui.tab = 'plan'; sw3.goal.start = '2026-11-02'; ['2026-11-02','2026-11-09','2026-11-10'].forEach(k => sw3.goal.days[k] = { done: true });
   ok(run(sw3, '2026-11-12').html.includes('比上周多做到 1 天'), '本周复盘和上周比'); }
+ok(run(goal(), '2026-11-14').html.includes('明天扣') && run(goal(), '2026-11-14').html.includes('今天就要提交申诉'), '扣款前一天提醒今天就要申诉');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -728,7 +728,7 @@ function viewToday(){
   var pendCard='';
   if(pend.length){
     var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
-    pendCard='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+' 合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
+    pendCard='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">'+(diffDays(t,due)===1?'明天扣':diffDays(t,due)===0?'今天扣':'待扣款')+'</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+' 合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?(diffDays(t,due)<=1?'<b>如果是生病或急事，今天就要提交申诉。</b>':'如果是生病或急事，现在还可以申诉。'):(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
     (appealsLeft(g)?'<button class="btn small danger" id="appealPending">'+(pend.length>1?'选一天申诉':'申诉')+'（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
   var yd=addDays(today(),-1);
