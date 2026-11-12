@@ -492,7 +492,7 @@ function stepStake(D){
   var tiers=[[100,'试试看'],[300,'认真'],[500,'必须做到']];
   var h='<h1>押多少承诺金？</h1><p class="muted">一期 28 天。漏练一天扣承诺金的 1/20，最多扣完为止。全勤一分不扣。</p><div class="grid3" style="margin-bottom:12px">'+
   tiers.map(function(t){return '<button class="opt '+(D.stake===t[0]?'on':'')+'" data-stake="'+t[0]+'" style="text-align:center"><div class="t" style="font-size:20px">$'+t[0]+'</div><div class="d">'+t[1]+'</div></button>';}).join('')+'</div>'+
-  '<p class="small muted">漏一天扣 <b>'+money(D.stake/20)+'</b>。$1,000 以上的档位会在有成功案例后开放。</p>';
+  '<p class="small muted">漏一天扣 <b>'+money(D.stake/20)+'</b>。'+(function(){var n=D.days.length*4,w=Math.min(D.stake,n*D.stake/20);return n?'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'+money(w)+'</b>。':'';})()+'$1,000 以上的档位会在有成功案例后开放。</p>';
   h+='<div class="card"><h3>严格程度</h3><div class="stack">'+
   '<button class="opt '+(D.mode==='normal'?'on':'')+'" data-mode="normal"><div class="t">普通模式</div><div class="d">每期可申诉 2 次（生病、急事），审核通过不扣钱。</div></button>'+
   '<button class="opt '+(D.mode==='hard'?'on':'')+'" data-mode="hard"><div class="t">硬核模式</div><div class="d">不能申诉。给已经下定决心的人。</div></button></div></div>';
