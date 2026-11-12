@@ -980,7 +980,8 @@ function viewLearn(){
   (function(){var mine={};planFor(g,today()).tasks.forEach(function(t){if(t.code&&PTE[t.code])mine[PTE[t.code].n]=1;});var cov=PTE_WEIGHTS.reduce(function(x,w){return x+(mine[w[0]]?w[1]:0);},0);
     return (cov?'<p class="small" style="margin:0 0 10px"><b>你这周练的题型，合计约占总分 '+cov+'%</b>（打勾的是你在练的）</p>':'')+
     PTE_WEIGHTS.map(function(w,i){return '<div class="wbar"><span>'+(mine[w[0]]?'✓ ':'')+w[0]+'</span><div class="b '+(mine[w[0]]?'hot':'')+'" style="width:'+(w[1]/max*100)+'%"></div><b>'+w[1]+'%</b></div>';}).join('');})()+'</div>';
-  h+='<div class="card"><h2>各题型技巧</h2>'+Object.keys(PTE).map(function(k){return '<div class="kv" style="display:block"><b>'+PTE[k].n+'</b><div class="small muted" style="margin-top:4px">'+PTE[k].tip+'</div></div>';}).join('')+'</div>';
+  var myc={};planFor(g,today()).tasks.forEach(function(x){if(x.code)myc[x.code]=1;});
+  h+='<div class="card"><h2>各题型技巧</h2>'+Object.keys(PTE).sort(function(a,b){return (myc[b]?1:0)-(myc[a]?1:0);}).map(function(k){return '<div class="kv" style="display:block"><b>'+PTE[k].n+'</b>'+(myc[k]?' <span class="chip brand">在练</span>':'')+'<div class="small muted" style="margin-top:4px">'+PTE[k].tip+'</div></div>';}).join('')+'</div>';
   h+='<div class="card"><h2>官方免费资料</h2>'+
   '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/preparation/official-practice-tests" target="_blank" rel="noopener"><b>myPTE Smart Prep</b></a><div class="small muted">免费：学习计划、4 套指导练习卷、视频课、技巧文档</div></div>'+
   '<div class="kv" style="display:block"><a href="https://www.pearsonpte.com/content/dam/ELL/pte/pearsonpte/pdfs/pte-academic-pdfs/pte-academic-speaking-test-tips.pdf" target="_blank" rel="noopener"><b>官方口语技巧 PDF</b></a><div class="small muted">7 个口语题型，含好/中/差示范</div></div>'+
