@@ -167,6 +167,30 @@ ok(r.html.includes('还差：目标名称、任务名称'), '下一步不可点�
 s.draft.goalName = '每天健身'; s.draft.tasks[0].name = '跑步'; r = run(s, '2026-11-11');
 ok(!r.html.includes('还差：'), '都填好后不再显示“还差”提示');
 
+// 自定义任务的单位可以自己改（公里、页、分钟）
+s.draft.tasks[0].unit = '公里'; r = run(s, '2026-11-11');
+ok(r.html.includes('data-tunit="0"') && r.html.includes('value="公里"'), '自定义任务应有可改的单位输入框');
+
+// 今天还没打卡：任务卡在待扣款提醒前面（首屏先给能做的事）；打完卡后待扣款照样显示
+s = goal(); s.goal.days['2026-11-09'] = { done: true };
+r = run(s, '2026-11-11');
+ok(r.html.indexOf('今天的任务') >= 0 && r.html.indexOf('今天的任务') < r.html.indexOf('待扣款'), '还没打卡时任务卡应在待扣款提醒前面');
+s.goal.days['2026-11-11'] = { done: true, doneAt: '20:10' }; r = run(s, '2026-11-11');
+ok(r.html.includes('待扣款') && r.html.includes('appealPending'), '打完卡后仍显示待扣款和申诉入口');
+
+// 练习日写短
+r = run(goal({ ui: { tab: 'plan' } }), '2026-11-09');
+ok(r.html.includes('周一至周六'), '连续的练习日应写成“周一至周六”');
+
+// 打完卡：显示连续天数；周六打完卡，下次提醒写“周一”而不是“明天”
+s = goal(); ['2026-11-09','2026-11-10','2026-11-11'].forEach(function (d) { s.goal.days[d] = { done: true }; });
+s.goal.days['2026-11-12'] = { done: true, doneAt: '20:31' }; r = run(s, '2026-11-12');
+ok(r.html.includes('连续做到 4 天'), '打完卡应显示连续做到 4 天');
+ok(r.html.includes('明天要做'), '打完卡应预告明天要做的任务');
+s = goal(); ['2026-11-13','2026-11-14'].forEach(function (d) { s.goal.days[d] = { done: true, doneAt: '20:00' }; });
+r = run(s, '2026-11-14');
+ok(r.html.includes('周一 20:00 提醒你') && !r.html.includes('明天 20:00 提醒你'), '周六打完卡下次提醒应是周一');
+
 // 欢迎页不承诺还没有的小组功能
 r = run(null, '2026-11-11');
 ok(!r.html.includes('小组里互相看得见'), '欢迎页不应写还没上线的小组功能');

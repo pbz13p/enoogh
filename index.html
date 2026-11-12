@@ -83,6 +83,10 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .check svg{opacity:0}.check.on svg{opacity:1}
 .qty{display:flex;align-items:center;gap:6px}
 .qty input{width:64px;min-height:38px;text-align:center}
+.streak{text-align:center;min-width:64px;color:var(--brand-ink)}
+.streak b{display:block;font-size:30px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.streak span{font-size:11px;color:var(--muted)}
+.qty input.unit{width:52px;padding:4px;font-size:14px;color:var(--muted)}
 .bar{height:10px;border-radius:99px;background:#E4EEEC;overflow:hidden}
 .bar>i{display:block;height:100%;background:var(--brand);border-radius:99px}
 .ring{position:relative;width:96px;height:96px;flex:none}
@@ -153,6 +157,11 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 /* ---------- constants ---------- */
 var KEY='enoogh_v1';
 var WD=['周日','周一','周二','周三','周四','周五','周六'];
+// 把练习日写短：周一至周六、周一、周三、周五、每天
+function daysText(days){var o=[1,2,3,4,5,6,0],on=o.map(function(d){return days.indexOf(d)>=0;});if(on.every(Boolean))return '每天';
+  var out=[],i=0;while(i<7){if(!on[i]){i++;continue;}var j=i;while(j+1<7&&on[j+1])j++;
+    if(j-i>=2)out.push(WD[o[i]]+'至'+WD[o[j]]);else for(var k=i;k<=j;k++)out.push(WD[o[k]]);i=j+1;}
+  return out.join('、');}
 var CYCLE_DAYS=28;
 var CHARITIES=[
   {id:'amaze',name:'Amaze（维州孤独症协会）',d:'为孤独症人士和家庭提供信息、咨询，推动社会接纳',url:'https://www.amaze.org.au'},
@@ -362,7 +371,7 @@ function stepPlan(D){
   D.tasks.map(function(t,i){
     return '<div class="task"><div class="nm">'+(t.code?'<div class="t">'+esc(t.name)+'</div>':'<input class="in" data-tname="'+i+'" placeholder="任务名称" value="'+esc(t.name)+'" style="min-height:40px">')+
     (t.code?'':'<div class="d" style="margin-top:6px">每次约 <input class="in" data-tmins="'+i+'" type="number" inputmode="numeric" value="'+(t.mins||0)+'" style="width:64px;min-height:34px;display:inline-block;padding:4px 6px"> 分钟</div>')+'</div>'+
-    '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><span class="small muted">'+esc(t.unit)+'</span></div>'+
+    '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量">'+(t.code?'<span class="small muted">'+esc(t.unit)+'</span>':'<input class="in unit" data-tunit="'+i+'" value="'+esc(t.unit)+'" placeholder="次" maxlength="4" aria-label="单位，比如次、公里、页">')+'</div>'+
     '<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button></div>';
   }).join('')+'</div>';
   var mins=estMinutes(D.tasks), warn='';
@@ -395,7 +404,7 @@ function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
   '<div class="kv"><span>每天</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('<br>')+'</b></div>'+
-  '<div class="kv"><span>日子</span><b>'+[1,2,3,4,5,6,0].filter(function(d){return D.days.indexOf(d)>=0;}).map(function(d){return WD[d];}).join(' ')+' · '+D.time+'</b></div>'+
+  '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+D.time+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
@@ -425,6 +434,8 @@ function bindOnboard(D){
     else{D.tasks.push({name:'',qty:1,unit:'次',mins:15});save();render();}
   });
   on('[data-tdel]','click',function(){D.tasks.splice(+this.getAttribute('data-tdel'),1);save();render();});
+  on('[data-tunit]','input',function(){D.tasks[+this.getAttribute('data-tunit')].unit=this.value.trim()||'次';save();});
+  on('[data-tunit]','change',function(){if(!this.value.trim())this.value='次';});
   on('[data-tqty]','change',function(){D.tasks[+this.getAttribute('data-tqty')].qty=Math.max(1,+this.value||1);save();render();});
   on('[data-tname]','change',function(){D.tasks[+this.getAttribute('data-tname')].name=this.value;save();syncNext();});
   on('[data-tmins]','change',function(){D.tasks[+this.getAttribute('data-tmins')].mins=Math.max(0,+this.value||0);save();render();});
@@ -503,6 +514,10 @@ function cycleStats(g){
   return {done:done,due:due,day:diffDays(start,t)+1};
 }
 /* 上一个练习日漏了：不责备，给一个最小的起点，帮他今天回来（“别连漏两天”） */
+// 连续做到的练习日（休息日、报备日跳过不打断）
+function doneStreak(g,t){var n=0;for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(t,-i),st=dayStatus(g,d);if(st==='rest'||st==='excused')continue;if(st==='done')n++;else break;}return n;}
+// 下一个练习日：明天 / 周一
+function nextPractice(g,t){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length)return {label:i===1?'明天':(i<7?'周'+'日一二三四五六'[nd.getDay()]:'下'+WD[nd.getDay()]),time:np.time,tasks:np.tasks};}return null;}
 function missStreak(g,t){var n=0;for(var i=1;i<=14;i++){var d=addDays(t,-i),st=dayStatus(g,d);if(st==='rest')continue;if(st==='miss')n++;else break;}return n;}
 function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '';var f=p.tasks[0];
   var did=p.tasks.filter(function(x,i){return r&&r.tasks&&r.tasks[i];}).length,left=p.tasks.length-did;
@@ -521,21 +536,28 @@ function viewToday(){
   // 已扣款通知只是告知：今天还要打卡时放到最下面，别把打卡挤出首屏
   if(st==='rest'||st==='done'||st==='excused'){h+=justCard;justCard='';}
   var pend=g.ledger.filter(function(l){return l.status==='pending';});
+  var pendCard='';
   if(pend.length){
     var due=nextSunday(addDays(fromKey(pend[0].noticed),1));
-    h+='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+' 合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
+    pendCard='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+' 合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
     (appealsLeft(g)?'<button class="btn small danger" id="appealPending">'+(pend.length>1?'选一天申诉':'申诉')+'（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
+  // 今天还要打卡时，待扣款提醒放到任务下面：首屏先给“现在能做的事”，申诉入口照样在
+  if(st==='rest'||st==='done'||st==='excused'){h+=pendCard;pendCard='';}
   if(st==='rest'){
     h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
   } else if(st==='done'){
-    h+='<div class="card tint"><h2>今天完成了 ✓</h2><p class="muted" style="margin:0">打卡时间 '+esc(r.doneAt||'')+'。明天 '+p.time+' 提醒你。</p></div>'+proofView(r);
+    var sk=doneStreak(g,t),np=nextPractice(g,t);
+    h+='<div class="card tint"><div class="row between" style="align-items:flex-start"><div style="flex:1"><h2 style="margin:0 0 6px">今天完成了 ✓</h2><p class="small muted" style="margin:0;line-height:1.6">打卡时间 '+esc(r.doneAt||'')+(np?'<br>'+np.label+' '+esc(np.time)+' 提醒你':'')+'</p></div>'+
+      (sk>=2?'<div class="streak" aria-label="连续做到 '+sk+' 天"><b>'+sk+'</b><span>天连续</span></div>':'')+'</div>'+
+      (sk>=2?'<p class="small" style="margin:12px 0 0;padding-top:10px;border-top:1px solid #CFE7E3">'+(sk>=7?'连续 '+sk+' 天了，习惯正在成形。':'连续 '+sk+' 天做到，别让这串数字断掉。')+'</p>':'')+'</div>'+
+      (np?'<div class="card"><h3 style="margin:0 0 8px">'+np.label+'要做</h3>'+np.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('')+'</div>':'')+proofView(r);
   } else if(st==='excused'){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
     h+='<div class="card"><div class="row between"><h2 style="margin:0">今天的任务</h2><span class="chip sky">'+p.time+' 提醒 · 23:59 截止</span></div><div style="margin-top:6px">'+
-    backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
+    backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>'+pendCard;
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
     '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
@@ -620,7 +642,7 @@ function viewPlan(){
   return h;
 }
 function planTable(p){
-  return '<div class="small muted" style="margin:6px 0">'+[1,2,3,4,5,6,0].filter(function(d){return p.days.indexOf(d)>=0;}).map(function(d){return WD[d];}).join(' ')+' · '+p.time+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
+  return '<div class="small muted" style="margin:6px 0">'+daysText(p.days)+' · '+p.time+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
   p.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
