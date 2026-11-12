@@ -406,5 +406,6 @@ ok(html.includes('漏得最多（'), '结营页指出最常漏的星期几');
   const rn = run(sn, '2026-11-10'); const nd = rn.ctx.window.__test.nextDraft(rn.saved.goal, 60);
   ok(nd.days.indexOf(3) < 0 && nd.days.indexOf(5) < 0 && nd.days.length === 4, '调轻时去掉最常漏的两天（周三、周五）');
   ok(nd.tpl === 'milktea', '再开一期带上模板（补打卡、诚信承诺、技巧都还在）'); }
+ok(code.includes("id=\"eAddPte\"") && code.includes('这个题型已经在计划里了'), 'PTE 下周计划可以加题型，不重复');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
