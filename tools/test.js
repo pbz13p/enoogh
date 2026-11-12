@@ -414,5 +414,7 @@ ok(html.includes("var st0=fromKey(w.s),ic={o:'✓',x:'✕',e:'假',r:'休',t:'·
 { const T = run(null, '2026-11-12').ctx.window.__test; const h = T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: 'x', s: '2026-11-09', a: '2026-11-12', d: 'oex' + 'f'.repeat(25), c: '' })))); ok(h.includes('做到 1 天'), '监督人页：申诉的日子不算“做到”，和 App 里一致'); }
 { const T = run(null, '2026-11-12').ctx.window.__test; const mk = d => T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: 'x', s: '2026-11-09', a: '2026-11-11', d: d, c: '' }))));
   ok(mk('oot' + 'f'.repeat(25)).includes('11月11日：还没打卡') && mk('ooo' + 'f'.repeat(25)).includes('11月11日：✓ 已经打卡'), '监督人页开头写快照那天有没有打卡'); }
+{ const sp2 = goal(); sp2.goal.start = '2026-11-12'; sp2.goal.pte.exam = '2026-11-11'; ok(run(sp2, '2026-11-12').html.includes('考得怎么样？'), '考后今天页问成绩');
+  sp2.goal.pte.result = 66; ok(run(sp2, '2026-11-12').html.includes('达到目标 65'), '记了成绩显示是否达标'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

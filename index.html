@@ -772,6 +772,8 @@ function viewToday(){
   }
   if(!isLate&&cs.day<=7)h+=calCard(p);
   if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':installEvt?'点下面的按钮一键安装。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div>'+(installEvt?'<button class="btn small primary" id="a2hsGo" style="margin-top:10px">一键安装</button>':'')+'</div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
+  if(g.pte&&g.pte.exam&&diffDays(fromKey(g.pte.exam),today())>=0&&!g.pte.result)h+='<div class="card tint"><h3 style="margin:0 0 6px">考得怎么样？</h3><p class="small muted" style="margin:0 0 10px">出分后记一下最低单项分（目标 '+g.pte.target+'）。没出分可以先跳过。</p><div class="row"><input class="in" id="pteRes" type="number" inputmode="numeric" min="10" max="90" placeholder="比如 66" style="flex:1;min-height:42px" aria-label="最低单项分"><button class="btn small primary" id="pteResSave">记下来</button></div></div>';
+  else if(g.pte&&g.pte.result)h+='<div class="card tint small"><b>考试成绩：最低单项 '+g.pte.result+'</b>'+(g.pte.result>=g.pte.target?' · 达到目标 '+g.pte.target+' 🎉':' · 目标 '+g.pte.target+'，还差 '+(g.pte.target-g.pte.result)+' 分，接着练')+'</div>';
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
   return h;
@@ -791,6 +793,7 @@ function bindToday(){
   on('#goPlan','click',function(){S.ui.tab='plan';save();render();window.scrollTo(0,0);});
   on('#a2hsGo','click',function(){var e=installEvt;if(!e)return;installEvt=null;e.prompt();if(e.userChoice)e.userChoice.then(function(r){if(r&&r.outcome==='accepted'){S.ui.a2hs=1;save();}render();});});
   on('[data-cal]','click',function(){showDay(S.goal,this.getAttribute('data-cal'));});
+  on('#pteResSave','click',function(){var v=Math.round(+document.getElementById('pteRes').value);if(!(v>=10&&v<=90)){toast('填 10–90 之间的分数');return;}g.pte.result=v;save();render();toast(v>=g.pte.target?'恭喜达标！':'记下了，下一次一定行');});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});
@@ -1015,12 +1018,13 @@ function renderFinished(){
   cycleCal(g)+missDayTip(g)+
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
-  (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
+  (g.type==='pte'?(g.pte&&g.pte.result?'<div class="card tint small"><b>考试成绩：最低单项 '+g.pte.result+'</b>（开始时 '+g.pte.now+'，目标 '+g.pte.target+'）'+(g.pte.result>=g.pte.target?' · 达标了 🎉':'')+'</div>':'<div class="card tint small"><b>考完了吗？</b> 出分后记下最低单项分，看看这一期练得值不值。<div class="row" style="margin-top:8px"><input class="in" id="pteRes" type="number" inputmode="numeric" min="10" max="90" placeholder="比如 66" style="flex:1;min-height:42px" aria-label="最低单项分"><button class="btn small primary" id="pteResSave">记下来</button></div></div>'):'')+
   '<div class="row" style="margin-bottom:10px"><button class="btn block" id="shareImg" style="flex:1">生成成绩图片</button><button class="btn ghost" id="shareRes" style="flex:1">复制文字</button></div>'+
   '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>'+
   '<button class="btn ghost block" id="newGoal" style="margin-top:10px">换一个目标</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
   on('[data-cal]','click',function(){showDay(g,this.getAttribute('data-cal'));});
+  on('#pteResSave','click',function(){var v=Math.round(+document.getElementById('pteRes').value);if(!(v>=10&&v<=90)){toast('填 10–90 之间的分数');return;}g.pte.result=v;save();renderFinished();toast(v>=g.pte.target?'恭喜达标！':'记下了，下一次一定行');});
   document.getElementById('shareRes').onclick=function(){var tx=shareText(g,rate,done,due,best,T.charged),b=this;
     function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='复制文字';},2500);}
     if(navigator.share){navigator.share({title:'Enoogh 一诺',text:tx}).catch(function(){});}
