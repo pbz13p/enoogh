@@ -401,7 +401,10 @@ function nextDraft(old,rate){ // 再开一期：带上上一期计划；完成�
   var D=newDraft(),p=old.plans[old.plans.length-1].plan,light=rate<80;
   D.step=2;D.type=old.type;D.goalName=old.type==='pte'?'':old.name;
   if(old.pte){D.pte=JSON.parse(JSON.stringify(old.pte));if(D.pte.exam<key(addDays(today(),7)))D.pte.exam=key(addDays(today(),42));}
-  D.days=p.days.slice();if(light&&D.days.length>3)D.days=D.days.slice(0,Math.max(3,D.days.length-2));
+  D.days=p.days.slice();if(light&&D.days.length>3){var keep=Math.max(3,D.days.length-2),mc={},st0=fromKey(old.start);
+    for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(st0,i);if(dayStatus(old,d)==='miss')mc[d.getDay()]=(mc[d.getDay()]||0)+1;}
+    D.days=D.days.map(function(d,i){return {d:d,m:mc[d]||0,i:i};}).sort(function(a,b){return a.m-b.m||a.i-b.i;}).slice(0,keep).sort(function(a,b){return a.i-b.i;}).map(function(x){return x.d;});}
+  D.tpl=old.tpl||null;
   D.time=p.time;D.tasks=p.tasks.map(function(t){var c={code:t.code||null,name:t.name,qty:light?Math.max(1,Math.round(t.qty/2)):t.qty,unit:t.unit,mins:t.mins||0};if(!c.code)delete c.code;return c;});
   D.stake=old.stake;D.mode=old.mode;D.pay=old.pay;D.charity=old.charity;D.carried=light?'light':rate>=95?'up':'same';
   return D;

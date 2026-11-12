@@ -399,5 +399,12 @@ ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息�
 { const h = run(null, '2026-11-12').html; ok(h.includes('我的数据存在哪？') && h.includes('现在会真的扣钱吗？'), '欢迎页有常见问题'); }
 { const sr = goal(); sr.goal.type = 'custom'; sr.ui.tab = 'plan'; ok(run(sr, '2026-11-12').html.includes('改目标名'), '计划页可以改目标名'); }
 ok(html.includes('漏得最多（'), '结营页指出最常漏的星期几');
+{ const sn = goal(); sn.goal.type = 'custom'; sn.goal.tpl = 'milktea'; sn.goal.start = '2026-10-12';
+  // 周一到周六练；只漏周三（4 次）和周五（1 次），其余都做到
+  for (let i = 0; i < 28; i++) { const d = new Date(2026, 9, 12 + i), k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    if (d.getDay() === 0) continue; if (d.getDay() === 3 || (d.getDay() === 5 && i < 7)) continue; sn.goal.days[k] = { done: true }; }
+  const rn = run(sn, '2026-11-10'); const nd = rn.ctx.window.__test.nextDraft(rn.saved.goal, 60);
+  ok(nd.days.indexOf(3) < 0 && nd.days.indexOf(5) < 0 && nd.days.length === 4, '调轻时去掉最常漏的两天（周三、周五）');
+  ok(nd.tpl === 'milktea', '再开一期带上模板（补打卡、诚信承诺、技巧都还在）'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
