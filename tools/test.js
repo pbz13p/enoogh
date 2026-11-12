@@ -321,5 +321,7 @@ ok(/b\.onclick=function\(\)\{document\.querySelectorAll\('\.toast'\)/.test(code)
   const pte = run(goal(), '2026-11-10', '09:30');
   ok(pte.saved.goal.ledger.length === 1 && !pte.html.includes('补交昨天的打卡'), '普通目标没有次日补打卡');
   ok(code.includes("lateMode=false;save();render();toast(wasLate?") , '补打卡交完回到今天'); }
+ok(/data-next\]','click',function\(\)\{clearToasts\(\)/.test(code), '换步骤时收起提示条，不挡确认项');
+ok(code.includes('第二天中午 12 点前要交'), '早睡/戒奶茶的确认条款写明次日中午截止');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

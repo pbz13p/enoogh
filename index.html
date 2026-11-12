@@ -317,6 +317,7 @@ function appealsLeft(g){return g.mode==='hard'?0:Math.max(0,2-g.appealsUsed);}
 
 /* ---------- ui helpers ---------- */
 var $app=document.getElementById('app');
+function clearToasts(){document.querySelectorAll('.toast').forEach(function(x){x.remove();});}
 function toast(msg){document.querySelectorAll('.toast').forEach(function(x){x.remove();});var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2600);}
 /* 用户一开始填写（点输入框/下拉）就收起提示条，免得挡住正在填的那一行 */
 if(document.addEventListener)document.addEventListener('focusin',function(e){var n=e.target&&e.target.tagName;if(n==='INPUT'||n==='SELECT'||n==='TEXTAREA')document.querySelectorAll('.toast').forEach(function(x){x.remove();});});
@@ -478,15 +479,15 @@ function stepConfirm(D){
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
   '<div class="kv"><span>服务费</span><b>'+money(fee)+'（不退）</b></div></div>';
-  h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){return '<div class="task agree" data-agree="'+i+'"><button class="check '+(D.agree[i]?'on':'')+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
+  h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){if(i===3&&GRACE_HOUR[D.tpl])r='我理解每个练习日的卡最晚第二天中午 12 点前要交，没交就算漏练。';return '<div class="task agree" data-agree="'+i+'"><button class="check '+(D.agree[i]?'on':'')+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
   var all=RULES.every(function(r,i){return D.agree[i];});
   h+='<div class="card tint small">演示版：点“开始”不会扣任何钱。正式版会在这一步'+(D.pay==='card'?'绑定银行卡并收取服务费':'收取服务费和预付承诺金')+'。</div>';
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" id="startGoal" '+(all?'':'disabled')+'>开始第一天</button></div>';
   return h;
 }
 function bindOnboard(D){
-  on('[data-next]','click',function(){D.step++;save();render();window.scrollTo(0,0);});
-  on('[data-back]','click',function(){D.step--;save();render();window.scrollTo(0,0);});
+  on('[data-next]','click',function(){clearToasts();D.step++;save();render();window.scrollTo(0,0);});
+  on('[data-back]','click',function(){clearToasts();D.step--;save();render();window.scrollTo(0,0);});
   on('#whyUs','click',function(e){e.preventDefault();showCompare();});
   on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t||D.tpl){D.type=t;D.tasks=[];if(D.tpl){D.goalName='';D.tpl=null;D.days=[1,2,3,4,5,6];D.time='20:00';}}D.step=2;save();render();window.scrollTo(0,0);});
   on('[data-tpl]','click',function(){var id=this.getAttribute('data-tpl');if(D.tpl!==id)applyTpl(D,id);D.step=2;save();render();window.scrollTo(0,0);toast('已按「'+D.goalName+'」填好，数量和日子都能改');});
