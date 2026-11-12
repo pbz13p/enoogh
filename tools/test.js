@@ -408,5 +408,6 @@ ok(html.includes('漏得最多（'), '结营页指出最常漏的星期几');
   ok(nd.tpl === 'milktea', '再开一期带上模板（补打卡、诚信承诺、技巧都还在）'); }
 ok(code.includes("id=\"eAddPte\"") && code.includes('这个题型已经在计划里了'), 'PTE 下周计划可以加题型，不重复');
 { const sm2 = goal(); sm2.ui.tab = 'money'; const h = run(sm2, '2026-11-12').html; ok(h.includes('下次合并扣款：11月15日 周日 $45'), '承诺金页写明下次扣款日期和金额'); }
+{ const sl2 = goal(); sl2.ui.tab = 'learn'; ok(run(sl2, '2026-11-12').html.includes('合计约占总分 15%'), 'PTE 提分页显示本周计划覆盖了多少分数权重'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
