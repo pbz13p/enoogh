@@ -26,12 +26,12 @@ function makeEl() {
 }
 
 // 在给定的 localStorage 状态和“今天”下跑一遍脚本，返回渲染出的 HTML 和保存的状态
-function run(state, todayISO) {
+function run(state, todayISO, hhmm) {
   const store = {};
   if (state) store.enoogh_v1 = JSON.stringify(state);
   const app = makeEl();
   const RealDate = Date;
-  const fixed = new RealDate(todayISO + 'T10:00:00');
+  const fixed = new RealDate(todayISO + 'T' + (hhmm || '10:00') + ':00');
   function FakeDate(...a) { return a.length ? new RealDate(...a) : new RealDate(fixed.getTime()); }
   FakeDate.prototype = RealDate.prototype; FakeDate.now = () => fixed.getTime(); FakeDate.parse = RealDate.parse;
   const ctx = {
@@ -310,5 +310,15 @@ ok(/TPL_TIPS=\{[\s\S]*run:\[[\s\S]*gym:\[/.test(code), '每个模板都有自己
 ok(/function goalTips\(g\)\{return \(TPL_TIPS\[g\.tpl\]\|\|\[\]\)\.concat\(GENERAL_TIPS\)/.test(code), '没有模板时退回通用技巧');
 ok(code.indexOf('任何目标都管用')>0, '技巧页分成模板技巧和通用技巧两组');
 ok(/b\.onclick=function\(\)\{document\.querySelectorAll\('\.toast'\)/.test(code), '切换标签时收起提示条');
+
+// 早睡/戒奶茶：昨天的卡次日中午 12 点前可补，期间不算漏练；过了 12 点才算
+{ const st = () => { const s = goal(); s.goal.type = 'custom'; s.goal.tpl = 'sleep'; s.goal.name = '早睡'; return s; };
+  let a = run(st(), '2026-11-10', '09:30');
+  ok(!a.html.includes('undefined') && a.html.includes('待补打卡') && a.saved.goal.ledger.length === 0 && a.html.includes('补交昨天的打卡'), '早睡：次日上午昨天不算漏练，并提示补打卡');
+  a = run(st(), '2026-11-10', '12:30');
+  ok(a.saved.goal.ledger.length === 1 && !a.html.includes('补交昨天的打卡'), '早睡：过了中午 12 点昨天才算漏练');
+  const pte = run(goal(), '2026-11-10', '09:30');
+  ok(pte.saved.goal.ledger.length === 1 && !pte.html.includes('补交昨天的打卡'), '普通目标没有次日补打卡');
+  ok(code.includes("lateMode=false;save();render();toast(wasLate?") , '补打卡交完回到今天'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

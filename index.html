@@ -261,6 +261,11 @@ function isPracticeDay(goal,d){var p=planFor(goal,d);return p.days.indexOf(d.get
 function cycleEnd(goal){return addDays(fromKey(goal.start),CYCLE_DAYS-1);}
 function inCycle(goal,d){var i=diffDays(fromKey(goal.start),d);return i>=0&&i<CYCLE_DAYS;}
 function rec(goal,k){return goal.days[k]||(goal.days[k]={});}
+/* 早睡/戒奶茶：判断要到第二天才算数，昨天的卡可在次日中午 12 点前补打 */
+var GRACE_HOUR={sleep:12,milktea:12};
+function graceOpen(goal,d){var h=GRACE_HOUR[goal.tpl];return !!h&&diffDays(d,today())===1&&new Date().getHours()<h;}
+var lateMode=false;
+function shownDay(){var g=S.goal,y=addDays(today(),-1);return lateMode&&g&&dayStatus(g,y)==='late'?y:today();}
 function dayStatus(goal,d){
   var k=key(d), t=today();
   if(!inCycle(goal,d))return 'out';
@@ -268,7 +273,7 @@ function dayStatus(goal,d){
   var r=goal.days[k]||{};
   if(r.done)return 'done';
   if(r.excused)return 'excused';
-  if(diffDays(d,t)>0)return 'miss';
+  if(diffDays(d,t)>0)return graceOpen(goal,d)?'late':'miss';
   if(diffDays(d,t)===0)return 'todo';
   return 'future';
 }
@@ -576,8 +581,8 @@ function weekStrip(g){
   var t=today(), mon=addDays(t,-((t.getDay()+6)%7)), h='<div class="week">';
   for(var i=0;i<7;i++){
     var d=addDays(mon,i), st=dayStatus(g,d), cls={done:'done',miss:'miss',excused:'excused',rest:'rest',out:'out'}[st]||'';
-    var icon={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',future:'',out:''}[st];
-    h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',future:'',out:'不在本期'}[st]||'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></div>';
+    var icon={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''}[st];
+    h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:'不在本期'}[st]||'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></div>';
   }
   return h+'</div>';
 }
@@ -600,7 +605,7 @@ function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '
 function projection(g){
   var t=today(),start=fromKey(g.start),done=0,miss=0,left=0;
   for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i),st=dayStatus(g,d);
-    if(st==='done')done++;else if(st==='miss')miss++;else if(st==='todo'||st==='future')left++;}
+    if(st==='done')done++;else if(st==='miss')miss++;else if(st==='todo'||st==='future'||st==='late')left++;}
   var past=done+miss, rate=past?miss/past:0, more=Math.round(rate*left);
   var T=totals(g), charged=T.charged+T.pending;
   var proj=Math.min(g.stake,charged+more*perMiss(g));
@@ -638,7 +643,7 @@ function viewWitness(w){
 }
 function ckHint(left,proofOk){return left?'还差 '+left+' 项没勾'+(proofOk?'，勾完就能打卡。':'，再交上证据就能打卡。'):'就差最后一步：交上证据就能打卡。';}
 function viewToday(){
-  var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
+  var g=S.goal, t=shownDay(), isLate=diffDays(t,today())===1, k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
   var tn=(!cs.due&&p&&p.tasks)?p.tasks.length:0, tdid=tn?p.tasks.filter(function(x,i){return r.tasks&&r.tasks[i];}).length:0, ringPct=cs.due?rate:(tn?Math.round(tdid/tn*100):0);
   var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(ringPct>0?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C*ringPct/100+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':tn?'<b>'+tdid+'/'+tn+'</b><span>今天任务</span>':'<b>—</b><span>完成率</span>')+'</div></div>'+
@@ -655,6 +660,12 @@ function viewToday(){
     pendCard='<div class="card badc"><div class="row between"><b>有 '+pend.length+' 天漏练，将扣 '+money(pend.reduce(function(s,l){return s+l.amt;},0))+'</b><span class="chip bad">待扣款</span></div><p class="small" style="margin:6px 0 10px">将在 '+fmtLong(due)+' 合并扣款并捐出。'+(pend.some(function(l){return fromKey(l.noticed).getDay()===0;})?'周六的漏练周日才通知你，按规定要满 24 小时才扣，所以顺延到下周日。':'')+(appealsLeft(g)?'如果是生病或急事，现在还可以申诉。':(g.mode==='hard'?'硬核模式不能申诉。':'本期申诉次数已用完。'))+'</p>'+
     (appealsLeft(g)?'<button class="btn small danger" id="appealPending">'+(pend.length>1?'选一天申诉':'申诉')+'（剩 '+appealsLeft(g)+' 次）</button>':'')+'</div>';
   }
+  var yd=addDays(today(),-1);
+  if(isLate){
+    h='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><div class="row between"><b>正在补打卡：'+fmt(t)+'（昨天）</b><button class="btn small ghost" id="lateBack">回到今天</button></div><p class="small" style="margin:6px 0 0">中午 12 点前交上就不算漏练。</p></div>';
+  } else if(dayStatus(g,yd)==='late'){
+    h+='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><b>昨天的打卡还没交</b><p class="small" style="margin:6px 0 10px">「'+esc(g.name)+'」要到今天早上才知道有没有做到，所以给你留到中午 12 点补打卡。过了 12 点就算漏练。</p><button class="btn small primary" id="lateGo">补交昨天的打卡</button></div>';
+  }
   if(st==='rest'){
     h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
   } else if(st==='done'){
@@ -667,7 +678,7 @@ function viewToday(){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
-    h+='<div class="card"><div class="row between"><h2 style="margin:0">今天的任务</h2><span class="chip sky">'+p.time+' 提醒 · 23:59 截止</span></div><div style="margin-top:6px">'+
+    h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':p.time+' 提醒 · 23:59 截止')+'</span></div><div style="margin-top:6px">'+
     backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
@@ -677,7 +688,7 @@ function viewToday(){
     }
     h+='<button class="btn primary block" style="margin-top:16px" id="submitDay" '+(all&&proofOk?'':'disabled')+'>打卡完成</button>'+
     '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk))+'</p></div>';
-    if(g.mode!=='hard')h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
+    if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
@@ -689,7 +700,9 @@ function proofView(r){
 }
 var recState=null;
 function bindToday(){
-  var g=S.goal, k=key(today()), r=rec(g,k);
+  var g=S.goal, k=key(shownDay()), r=rec(g,k), wasLate=k!==key(today());
+  on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
+  on('#lateBack','click',function(){lateMode=false;render();});
   on('#witness','click',function(){var url=witnessLink(g),tx='我在 Enoogh 一诺坚持「'+g.name+'」，请你当我的监督人，点开看我的打卡：'+url;
     sheet('<h2 style="margin-top:0">请朋友当监督人</h2><p class="muted" style="margin:0 0 12px">把链接发给一个你在乎他看法的朋友。他打开就能看到你本期每一天做没做到（只读，看不到你的照片和钱的细节）。</p>'+
       '<div class="card tint small" style="margin-bottom:12px">链接是<b>此刻的快照</b>，不会自动更新。建议每周日发一次新的。</div>'+
@@ -704,7 +717,7 @@ function bindToday(){
   on('#recAgain','click',function(){r.audio=null;save();render();});
   on('#recStart','click',startRec);
   on('#submitDay','click',function(){
-    var now=new Date();r.done=true;r.doneAt=pad(now.getHours())+':'+pad(now.getMinutes());save();render();toast('打卡成功！承诺金一分没少 👏');
+    var now=new Date();r.done=true;r.doneAt=(wasLate?'次日 ':'')+pad(now.getHours())+':'+pad(now.getMinutes());lateMode=false;save();render();toast(wasLate?'昨天补上了，不算漏练 👏':'打卡成功！承诺金一分没少 👏');
   });
   on('#excuseToday','click',function(){appealSheet('today',k);});
   on('#appealPending','click',function(){appealSheet('pending',appealDays(g)[0].day);});
