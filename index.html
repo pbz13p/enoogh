@@ -798,7 +798,7 @@ function bindToday(){
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});
-  on('#witness','click',function(){var url=witnessLink(g),tx='我在 Enoogh 一诺坚持「'+g.name+'」，请你当我的监督人，点开看我的打卡：'+url;
+  on('#witness','click',function(){var url=witnessLink(g),cs0=cycleStats(g),tx='我在 Enoogh 一诺坚持「'+g.name+'」，第 '+Math.max(1,Math.min(cs0.day,CYCLE_DAYS))+' / '+CYCLE_DAYS+' 天，已经做到 '+cs0.done+' 天。请你当我的监督人，点开看我的打卡：'+url;
     sheet('<h2 style="margin-top:0">请朋友当监督人</h2><p class="muted" style="margin:0 0 12px">把链接发给一个你在乎他看法的朋友。他打开就能看到你本期每一天做没做到（只读，看不到你的照片和钱的细节）。</p>'+
       '<div class="card tint small" style="margin-bottom:12px">链接是<b>此刻的快照</b>，不会自动更新。建议每周日发一次新的。</div>'+
       '<button class="btn primary block" id="wSend">发给朋友</button>',function(el){
