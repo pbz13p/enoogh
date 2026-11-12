@@ -995,6 +995,7 @@ function renderFinished(){
   $app.innerHTML=top()+'<div class="hero-ic"'+(rate>=80?'':' style="background:var(--sky)"')+'>'+LOGO_W+'</div><h1 style="margin-bottom:6px">'+title+'</h1>'+
   '<p class="muted" style="margin:0 0 14px">'+lead+'</p>'+
   '<div class="card"><div class="kv"><span>完成率</span><b>'+rate+'%（'+done+'/'+due+' 天）</b></div><div class="kv"><span>最长连续</span><b>'+best+' 天</b></div><div class="kv"><span>'+(g.pay==='prepay'?'退回给你':'承诺金未扣')+'</span><b>'+money(g.stake-T.charged)+'</b></div><div class="kv"><span>捐给慈善</span><b>'+money(T.charged)+'</b></div></div>'+
+  cycleCal(g)+
   (T.charged>0?'<p class="small muted" style="margin:0 0 14px">这 '+money(T.charged)+' 已全部捐给 '+esc(charityName(g))+'，平台不留一分。谢谢你，这也是一件好事。</p>':'')+
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
