@@ -438,7 +438,13 @@ function stepWelcome(){
   '<div class="how"><div class="n">3</div><div><b>漏一天扣一小笔，全部捐出</b><div class="muted small">扣前 24 小时通知，生病急事可以申诉。</div></div></div></div>'+
   '<button class="btn primary block" data-next>开始定目标</button>'+
   '<p class="small muted" style="margin:12px 0 0;text-align:center">扣下的钱捐给 '+CHARITIES.map(function(c){return esc(c.name.split('（')[0]);}).join(' 或 ')+'（孤独症慈善机构），由你选。</p>'+'<p class="small muted" style="margin-top:6px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>'+
-  '<p class="small muted" style="margin-top:4px;text-align:center">换了手机？<a href="#" id="bkInW">从备份恢复</a></p>';
+  '<p class="small muted" style="margin-top:4px;text-align:center">换了手机？<a href="#" id="bkInW">从备份恢复</a></p>'+
+  '<div class="card faq" style="margin-top:16px"><h3 style="margin:0 0 4px">常见问题</h3>'+[
+    ['现在会真的扣钱吗？','不会。现在是演示版，不连接任何付款，可以放心试。'],
+    ['扣下的钱去哪了？','100% 捐给你选的孤独症慈善机构（Amaze 或 Aspect），收据发给你。平台只收一次服务费。'],
+    ['生病或有急事怎么办？','普通模式每期有 2 次申诉机会，通过就不扣。'],
+    ['我的数据存在哪？','只存在你这台手机的浏览器里，不上传。换手机前可以导出备份。']
+  ].map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>';}).join('')+'</div>';
 }
 function stepType(D){
   return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
