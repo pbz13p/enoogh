@@ -395,5 +395,6 @@ ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息�
   const h = run(sx2, '2026-11-12').html; ok(!h.includes('onerror="alert') && !h.includes('javascript:') && h.includes('data:image/jpeg;base64,AAAA'), '照片/录音地址只接受 data: 格式，恶意备份注入不了'); }
 { const V = run(null, '2026-11-12').ctx.window.__test.validBackup; const bad = goal(); bad.goal.ledger = [{ day: '2026-11-10"><img', amt: 15, status: 'pending' }];
   const bad2 = goal(); bad2.goal.stake = 99999; ok(!V(bad) && !V(bad2) && V(goal()), '备份校验：日期格式和承诺金档位不对的拒绝'); }
+{ const sT2 = goal(); sT2.goal.start = '2026-11-13'; ok(run(sT2, '2026-11-12').html.includes('让手机每天提醒你'), '明天开始的准备页也提示加日历'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -697,6 +697,7 @@ function viewWitness(w){
 }
 function ckHint(left,proofOk){return left?'还差 '+left+' 项没勾'+(proofOk?'，勾完就能打卡。':'，再交上证据就能打卡。'):'就差最后一步：交上证据就能打卡。';}
 function isStandalone(){try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}catch(e){return false;}}
+function calCard(p){if(S.ui.calDone||S.ui.calTip)return '';return '<div class="card tint small" id="calCard" style="margin-top:12px"><b>让手机每天提醒你</b><div style="margin:4px 0 10px;line-height:1.6">加到手机日历，练习日 '+esc(p&&p.time||'')+' 自动响，到结营为止。</div><div class="row"><button class="btn small primary" id="calGo" style="flex:1">📅 加到手机日历</button><button class="btn small ghost" id="calX">不用了</button></div></div>';}
 function viewToday(){
   var g=S.goal, t=shownDay(), isLate=diffDays(t,today())===1, k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
@@ -724,7 +725,7 @@ function viewToday(){
   if(st==='out'&&diffDays(t,fromKey(g.start))>0){
     var p0=planFor(g,fromKey(g.start));
     h+='<div class="card tint"><h2>'+(diffDays(t,fromKey(g.start))===1?'明天':fmtLong(fromKey(g.start))+' ')+'正式开始</h2><p class="muted" style="margin:0 0 10px">今天不用打卡，先把要用的东西准备好。</p>'+p0.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('')+'</div>';
-    return h+pendCard+justCard;
+    return h+calCard(p0)+pendCard+justCard;
   }
   if(st==='out'){
     h+='<div class="card tint"><h2>这一期的 28 天到了</h2><p class="muted" style="margin:0">补交完最后一天的打卡，中午 12 点后自动结营，出这一期的成绩。</p></div>';
@@ -755,7 +756,7 @@ function viewToday(){
     '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':(function(t){return pledge?t.replace('交上证据','勾上承诺'):t;})(ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk)))+'</p></div>';
     if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
-  if(!isLate&&!S.ui.calDone&&!S.ui.calTip&&cs.day<=7)h+='<div class="card tint small" id="calCard" style="margin-top:12px"><b>让手机每天提醒你</b><div style="margin:4px 0 10px;line-height:1.6">加到手机日历，练习日 '+esc(p&&p.time||'')+' 自动响，到结营为止。</div><div class="row"><button class="btn small primary" id="calGo" style="flex:1">📅 加到手机日历</button><button class="btn small ghost" id="calX">不用了</button></div></div>';
+  if(!isLate&&cs.day<=7)h+=calCard(p);
   if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
