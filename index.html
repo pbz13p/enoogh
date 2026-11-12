@@ -865,9 +865,9 @@ function icsText(g,t){
 /* 日历标准要求每行不超过 75 字节，超出要折行（中文 3 字节，不能拆开一个字） */
 function icsFold(line){var out='',n=0,cs=Array.from(line);for(var i=0;i<cs.length;i++){var c=cs[i],b=encodeURIComponent(c).replace(/%../g,'x').length;if(n+b>(out?74:75)){out+='\r\n ';n=0;}out+=c;n+=b;}return out;}
 /* 本期日历：28 天一眼看完，哪天做到、漏了、报备、休息 */
-function missDayTip(g){var c=[0,0,0,0,0,0,0],st0=fromKey(g.start);for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(st0,i);if(dayStatus(g,d)==='miss')c[d.getDay()]++;}
+function missDayTip(g,mid){var c=[0,0,0,0,0,0,0],st0=fromKey(g.start);for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(st0,i);if(dayStatus(g,d)==='miss')c[d.getDay()]++;}
   var m=0,wd=-1;c.forEach(function(n,i){if(n>m){m=n;wd=i;}});if(m<2)return '';
-  return '<div class="card tint small"><b>'+WD[wd]+'漏得最多（'+m+' 次）</b><div style="margin-top:4px">下一期可以把'+WD[wd]+'设成休息日，或者那天的量减半。</div></div>';}
+  return '<div class="card tint small"><b>'+WD[wd]+'漏得最多（'+m+' 次）</b><div style="margin-top:4px">'+(mid?'下周':'下一期')+'可以把'+WD[wd]+'设成休息日，或者那天的量减半。</div></div>';}
 function cycleCal(g){var st0=fromKey(g.start),t=today(),ic={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''},lb={done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:''};
   var head='<div class="week cal-h">'+[0,1,2,3,4,5,6].map(function(i){return '<div class="small muted" style="text-align:center">'+WD[addDays(st0,i).getDay()].slice(1)+'</div>';}).join('')+'</div>';
   var h='';for(var w=0;w<4;w++){h+='<div class="week">';for(var i=0;i<7;i++){var d=addDays(st0,w*7+i),st=dayStatus(g,d),cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
@@ -885,7 +885,7 @@ function viewPlan(){
   h+='<div class="card'+(isReview?' tint':'')+'"><div class="row between"><h2 style="margin:0">本周复盘</h2>'+(isReview?'<span class="chip brand">周末复盘时间</span>':'<span class="chip grey">周六晚复盘</span>')+'</div>'+
   '<div class="grid3" style="margin-top:12px;text-align:center"><div><div class="money" style="font-size:24px">'+done+'</div><div class="small muted">完成</div></div><div><div class="money" style="font-size:24px;color:var(--bad)">'+miss+'</div><div class="small muted">漏练</div></div><div><div class="money" style="font-size:24px;color:#1D6FA8">'+ex+'</div><div class="small muted">申诉/报备</div></div></div>'+
   (miss?'<p class="small" style="margin:12px 0 0">漏练的那天，是计划太满，还是时间不对？在下面改下周计划。</p>':'<p class="small muted" style="margin:12px 0 0">'+(done?'保持住。如果太轻松，下周可以加一点量。':'本周刚开始。')+'</p>')+'</div>';
-  h+=cycleCal(g)+missDayTip(g);
+  h+=cycleCal(g)+missDayTip(g,true);
   h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+
   '<button class="btn soft block" style="margin-top:12px" id="addCal">'+(S.ui.calDone?'✓ 已加到日历 · 再加一次':'📅 加到手机日历（练习日 '+esc(cur.time)+' 提醒）')+'</button><p class="small muted" style="margin:6px 0 0;text-align:center">练习日自动重复到结营；改了提醒时间再加一次即可</p></div>';
   h+='<div class="card"><div class="row between"><h2 style="margin:0">下周计划</h2>'+(next?'<span class="chip brand">'+fmt(addDays(fromKey(g.start),(w+1)*7))+' 起生效</span>':'<span class="chip grey">和本周一样</span>')+'</div>'+
