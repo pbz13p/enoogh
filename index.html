@@ -508,7 +508,7 @@ function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
   '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+' '+esc(t.unit);}).join('<br>')+'</b></div>'+
-  '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+esc(D.time)+'</b></div>'+
+  '<div class="kv"><span>时间</span><b>今天 '+fmt(today())+' – '+fmt(addDays(today(),CYCLE_DAYS-1))+'（28 天）</b></div>'+'<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+esc(D.time)+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
