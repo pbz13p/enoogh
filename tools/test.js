@@ -106,7 +106,21 @@ ok(r.ctx.window.__test.shareCard(r.saved.goal, 80, 16, 20, 5, 60) === null, '没
   ok(nd.days.length === Math.max(3, g.plans[0].plan.days.length - 2), '完成率低时每周天数应减两天（不少于 3 天）');
   ok(nd.tasks.every((t, i) => t.qty === Math.max(1, Math.round(g.plans[0].plan.tasks[i].qty / 2))), '完成率低时任务量应减半');
   const nd2 = r.ctx.window.__test.nextDraft(g, 100);
-  ok(nd2.days.length === g.plans[0].plan.days.length && nd2.tasks[0].qty === g.plans[0].plan.tasks[0].qty, '完成率高时计划原样带入'); }
+  ok(nd2.days.length === g.plans[0].plan.days.length && nd2.tasks[0].qty === g.plans[0].plan.tasks[0].qty, '完成率高时计划原样带入');
+  ok(nd2.carried === 'up' && r.ctx.window.__test.nextDraft(g, 85).carried === 'same', '几乎全勤时提示可以加一点，80–94% 原样');
+  const q0 = nd2.tasks.map(t => t.qty), b = r.ctx.window.__test.bumpPlan(nd2);
+  ok(b.carried === 'upped' && b.tasks.every((t, i) => t.qty === q0[i] + Math.max(1, Math.round(q0[i] * 0.2))), '加一点：每项任务量约 +20%，至少 +1');
+  const cd = r.ctx.window.__test.newDraft(); cd.tasks = [{ name: '跑步', qty: 3, unit: '公里', mins: 30 }];
+  r.ctx.window.__test.bumpPlan(cd); ok(cd.tasks[0].qty === 4 && cd.tasks[0].mins === 40, '自定义任务加量时预计时间同步增加'); }
+
+// 监督人只读链接：快照能往返解析，坏链接安全忽略
+{ const s2 = goal(); s2.goal.days['2026-11-09'] = { done: true }; const r2 = run(s2, '2026-11-11'), T = r2.ctx.window.__test;
+  ok(r2.html.includes('请朋友当监督人'), '今天页应有“请朋友当监督人”按钮');
+  const url = T.witnessLink(r2.saved.goal), w = T.parseWitness(url.slice(url.indexOf('#')));
+  ok(url.startsWith('https://enoogh.com/#w=') && w && w.n === 'PTE 提分' && w.d.length === 28 && w.d[0] === 'o' && w.d[1] === 'x' && w.d[2] === 't', '监督链接应带上目标名和每天状态');
+  const v = T.viewWitness(w); ok(v.includes('漏了 1 天') && v.includes('做到 1 天') && v.includes('只读'), '监督页显示进度且注明只读');
+  ok(T.parseWitness('#w=%7Bbad') === null && T.parseWitness('#w=' + encodeURIComponent('{"n":"x","s":"2026-11-09","a":"2026-11-10","d":"<script>"}')) === null && T.parseWitness('') === null, '坏的监督链接应安全忽略');
+  ok(!T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: '<img src=x>', s: '2026-11-09', a: '2026-11-10', d: 'oo' })))).includes('<img'), '监督页要转义目标名'); }
 
 // 本周日刚合并扣款：今天页要告诉用户扣了多少、捐给了谁
 s = goal(); r = run(s, '2026-11-15');
