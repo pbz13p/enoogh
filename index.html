@@ -272,6 +272,8 @@ function diffDays(a,b){return Math.round((b-a)/864e5);}
 function fmt(d){return (d.getMonth()+1)+'月'+d.getDate()+'日';}  // 中文日期，避免 D/M 与 M/D 混淆
 function fmtLong(d){return fmt(d)+' '+WD[d.getDay()];}
 function money(n){return '$'+(Math.round(n*100)/100).toLocaleString('en-AU',{minimumFractionDigits:0,maximumFractionDigits:2});}
+/* 照片/录音只接受本机生成的 data: 地址（防止恶意备份文件注入） */
+function safeMedia(u){u=String(u||'');return /^data:(image|audio|video)\/[a-z0-9.+-]+(;[a-z0-9=.+-]+)*;base64,[A-Za-z0-9+\/=]+$/i.test(u)?u:'';}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
 /* ---------- goal model ---------- */
@@ -740,9 +742,9 @@ function viewToday(){
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     if(pledge)h+='<div class="card"><h2>诚信打卡</h2><p class="small muted">“没喝”没法拍照证明，就用一句承诺代替。说到做到。</p><div class="task"><button class="check '+(r.pledge?'on':'')+'" id="pledgeTick" role="checkbox" aria-checked="'+!!r.pledge+'" aria-label="'+esc(pledge)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(pledge)+'</div></div></div>';
     else h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
-    '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
+    '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+safeMedia(src)+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
     if(g.type==='pte'){
-      h+='<div style="margin-top:14px"><div class="rec" id="recBox">'+(r.audio?'<audio controls src="'+r.audio+'" style="max-width:100%"></audio><button class="btn small ghost" id="recAgain">重录</button>':'<button class="btn small soft" id="recStart">🎙 开始录音（30 秒）</button><button class="btn small ghost" id="audioFile">上传录音文件</button>')+'</div></div>';
+      h+='<div style="margin-top:14px"><div class="rec" id="recBox">'+(r.audio?'<audio controls src="'+safeMedia(r.audio)+'" style="max-width:100%"></audio><button class="btn small ghost" id="recAgain">重录</button>':'<button class="btn small soft" id="recStart">🎙 开始录音（30 秒）</button><button class="btn small ghost" id="audioFile">上传录音文件</button>')+'</div></div>';
     }
     h+='<button class="btn primary block" style="margin-top:16px" id="submitDay" '+(all&&proofOk?'':'disabled')+'>打卡完成</button>'+
     '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':(function(t){return pledge?t.replace('交上证据','勾上承诺'):t;})(ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk)))+'</p></div>';
@@ -757,7 +759,7 @@ function viewToday(){
 function proofView(r){
   if(r.mediaPruned&&!(r.photos&&r.photos.length)&&!r.audio)return '<div class="card small muted">这天的照片和录音已清理，节省手机空间（打卡记录还在）。</div>';
   if(!(r.photos&&r.photos.length)&&!r.audio)return '';
-  return '<div class="card"><h3>今天的证据</h3><div class="proof">'+(r.photos||[]).map(function(src){return '<img class="thumb" src="'+src+'" alt="打卡截图">';}).join('')+'</div>'+(r.audio?'<audio controls src="'+r.audio+'" style="margin-top:10px;max-width:100%"></audio>':'')+'</div>';
+  return '<div class="card"><h3>今天的证据</h3><div class="proof">'+(r.photos||[]).map(function(src){return '<img class="thumb" src="'+safeMedia(src)+'" alt="打卡截图">';}).join('')+'</div>'+(r.audio?'<audio controls src="'+safeMedia(r.audio)+'" style="margin-top:10px;max-width:100%"></audio>':'')+'</div>';
 }
 var recState=null;
 function bindToday(){
