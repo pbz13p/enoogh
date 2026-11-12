@@ -199,5 +199,25 @@ ok(!r.html.includes('小组里互相看得见'), '欢迎页不应写还没上线
 s = goal(); s.goal.days['2026-11-10'] = { tasks: { 0: true } }; r = run(s, '2026-11-10');
 ok(r.html.includes('开了头，继续') && !r.html.includes('别连漏两天'), '勾了任务后回归提示应换成鼓励');
 
+
+// 进度线：在轨道上 / 掉队 + 照这个速度会扣多少
+s = goal(); r = run(s, '2026-11-09');
+ok(r.html.includes('在轨道上') && r.html.includes('全额不扣'), '没漏练时进度线应显示在轨道上');
+s = goal(); s.goal.days['2026-11-09'] = { done: true }; r = run(s, '2026-11-11');
+// 2 个已过练习日漏 1 天（50%），剩 21 个练习日（含今天）→ 再漏约 11 天 → 共 12 天 × $15 = $180
+ok(r.html.includes('掉队了 1 天') && r.html.includes('约扣 <b style="color:var(--bad)">$180'), '漏练后进度线应显示掉队和预计扣款');
+s = goal(); r = run(s, '2026-11-30');
+ok(r.html.includes('约扣 <b style="color:var(--bad)">$300'), '预计扣款不应超过承诺金');
+
+// 加到手机日历：.ics 每周重复，含练习日和提醒时间，到结营为止
+s = goal(); s.ui.tab = 'plan'; r = run(s, '2026-11-12');
+ok(r.html.includes('加到手机日历'), '计划页应有加到手机日历按钮');
+const ics = r.ctx.window.__test.icsText(r.saved.goal, new Date(2026, 10, 12));
+ok(ics.includes('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA;UNTIL=20261206') && ics.includes('DTSTART:20261112T200000') && ics.includes('BEGIN:VALARM'), '.ics 应按练习日每周重复到结营并带提醒');
+
+// 承诺金页常见问题：钱去哪、服务费、什么时候扣、申诉、演示版
+s = goal(); s.ui.tab = 'money'; r = run(s, '2026-11-12');
+ok(['扣下的钱去哪了','平台收多少钱','$49','什么时候扣','1/20','$15','申诉','演示版'].every(x => r.html.includes(x)), '承诺金页应有常见问题且数字与规则一致');
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

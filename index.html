@@ -95,6 +95,20 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .ring .c b{font-size:22px}
 .ring .c span{font-size:11px;color:var(--muted)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.faq details{border-top:1px solid var(--line);padding:2px 0}.faq details:first-of-type{border-top:0}
+.faq summary{list-style:none;cursor:pointer;padding:12px 24px 12px 0;font-weight:600;font-size:15px;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'';position:absolute;right:4px;top:50%;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.faq details p{margin:0 0 12px;font-size:14px;color:var(--muted);line-height:1.7}
+.track{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.track .dots{display:flex;gap:3px;align-items:center;margin:8px 0 6px}
+.track .dots i{flex:1;height:6px;border-radius:3px;background:#E4EEEC}
+.track .dots i.ok{background:var(--brand)}.track .dots i.x{background:var(--bad)}.track .dots i.ex{background:#B9C7C4}
+.track .dots i.now{height:10px;background:#fff;box-shadow:inset 0 0 0 2px var(--brand)}
+.track .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:13px}
+.track .hd b{font-size:14px}.track .on{color:var(--brand-ink)}.track .off{color:var(--bad)}
+.track .ft{font-size:12px;color:var(--muted);line-height:1.6}
 .day{border-radius:12px;padding:8px 0;text-align:center;font-size:12px;background:#F1F5F4;color:var(--muted)}
 .day b{display:block;font-size:15px;color:var(--ink);margin-top:2px}
 .day.done{background:var(--brand-tint);color:var(--brand-ink)}
@@ -318,7 +332,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;window.__test.shareText=shareText;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -523,12 +537,31 @@ function backNote(g,t,p,r){var n=missStreak(g,t);if(!n||!p.tasks.length)return '
   var did=p.tasks.filter(function(x,i){return r&&r.tasks&&r.tasks[i];}).length,left=p.tasks.length-did;
   if(did)return '<div class="back go"><b>开了头，继续！</b><div>'+(left?'还剩 '+left+' 项，做完点下面「打卡完成」，今天就算回来了。':'都做完了，点下面「打卡完成」，今天就算回来了。')+'</div></div>';
   return '<div class="back"><b>'+(n===1?'上次漏了没关系，别连漏两天':'已经连着漏了 '+n+' 天，今天回来最重要')+'</b><div>先只做第一项「'+esc(f.name)+' '+f.qty+' '+esc(f.unit)+'」，开了头就容易做完。</div></div>';}
+/* 进度线（参考 Beeminder 的“路”）：本期每个练习日一格，今天一眼看到在轨道上还是掉队，照这个速度最后会扣多少 */
+function projection(g){
+  var t=today(),start=fromKey(g.start),done=0,miss=0,left=0;
+  for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i),st=dayStatus(g,d);
+    if(st==='done'||st==='excused')done++;else if(st==='miss')miss++;else if(st==='todo'||st==='future')left++;}
+  var past=done+miss, rate=past?miss/past:0, more=Math.round(rate*left);
+  var T=totals(g), charged=T.charged+T.pending;
+  var proj=Math.min(g.stake,charged+more*perMiss(g));
+  return {done:done,miss:miss,left:left,projMiss:miss+more,proj:proj};
+}
+function progressLine(g){
+  var t=today(),start=fromKey(g.start),P=projection(g),dots='';
+  for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(start,i),st=dayStatus(g,d);if(st==='rest')continue;
+    dots+='<i class="'+({done:'ok',miss:'x',excused:'ex',todo:'now'}[st]||'')+'"></i>';}
+  var onTrack=!P.miss;
+  return '<div class="track" aria-label="本期进度线"><div class="hd"><b class="'+(onTrack?'on':'off')+'">'+(onTrack?'在轨道上':'掉队了 '+P.miss+' 天')+'</b><span class="muted">做到 '+P.done+' 天 · 还剩 '+P.left+' 个练习日</span></div>'+
+    '<div class="dots">'+dots+'</div>'+
+    '<div class="ft">'+(onTrack?'照这个速度，结营时承诺金<b style="color:var(--brand-ink)">全额不扣</b>。':'照这个速度，结营约扣 <b style="color:var(--bad)">'+money(P.proj)+'</b>；之后天天做到，只扣已漏的 '+money(Math.min(g.stake,totals(g).charged+totals(g).pending))+'。')+'</div></div>';
+}
 function viewToday(){
   var g=S.goal, t=today(), k=key(t), r=rec(g,k), st=dayStatus(g,t), p=planFor(g,t), T=totals(g), cs=cycleStats(g);
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
   var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(cs.due?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(cs.due?C*rate/100:0)+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':'<b style="font-size:17px">第 '+Math.max(1,cs.day)+' 天</b><span>刚起步</span>')+'</div></div>'+
   '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
-  '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+'</div>';
+  '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?'<div class="small muted">距离考试 '+Math.max(0,diffDays(t,fromKey(g.pte.exam)))+' 天</div>':'')+'</div></div>'+weekStrip(g)+progressLine(g)+'</div>';
   var justCard='';
   var just=g.ledger.filter(function(l){if(l.status!=='charged'||!l.chargedOn)return false;var a=diffDays(fromKey(l.chargedOn),t);return a>=0&&a<7;});
   if(just.length){var jd=fromKey(just[0].chargedOn);
@@ -625,6 +658,20 @@ function appealSheet(kind,dayKey){
 }
 
 /* plan */
+/* 加到手机日历：生成 .ics，按本周计划的练习日和提醒时间每周重复到结营，开始时手机会提醒 */
+function icsText(g,t){
+  var p=planFor(g,t),BD=['SU','MO','TU','WE','TH','FR','SA'],tm=(p.time||'20:00').split(':'),first=null;
+  for(var i=0;i<7;i++){var d=addDays(t,i);if(p.days.indexOf(d.getDay())>=0){first=d;break;}}
+  if(!first||!p.days.length)return '';
+  var ymd=function(d){return key(d).replace(/-/g,'');}, end=cycleEnd(g);
+  var desc=p.tasks.map(function(x){return x.name+' '+x.qty+' '+x.unit;}).join('\\n')+'\\n做完回 enoogh.com 打卡，23:59 截止。';
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Enoogh//CN','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    'UID:enoogh-'+g.id+'-'+key(t)+'@enoogh.com','DTSTAMP:'+ymd(t)+'T000000Z',
+    'DTSTART:'+ymd(first)+'T'+pad(+tm[0])+pad(+tm[1])+'00','DURATION:PT30M',
+    'RRULE:FREQ=WEEKLY;BYDAY='+p.days.map(function(d){return BD[d];}).join(',')+';UNTIL='+ymd(end)+'T235959',
+    'SUMMARY:一诺打卡：'+g.name,'DESCRIPTION:'+desc,
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:该练了','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
 function viewPlan(){
   var g=S.goal,t=today(),w=weekIndex(g,t),cur=planFor(g,t),next=g.plans.filter(function(p){return p.fromWeek>w;})[0];
   var h='<h1>计划</h1>';
@@ -635,7 +682,8 @@ function viewPlan(){
   h+='<div class="card'+(isReview?' tint':'')+'"><div class="row between"><h2 style="margin:0">本周复盘</h2>'+(isReview?'<span class="chip brand">周末复盘时间</span>':'<span class="chip grey">周六晚复盘</span>')+'</div>'+
   '<div class="grid3" style="margin-top:12px;text-align:center"><div><div class="money" style="font-size:24px">'+done+'</div><div class="small muted">完成</div></div><div><div class="money" style="font-size:24px;color:var(--bad)">'+miss+'</div><div class="small muted">漏练</div></div><div><div class="money" style="font-size:24px;color:#1D6FA8">'+ex+'</div><div class="small muted">申诉/报备</div></div></div>'+
   (miss?'<p class="small" style="margin:12px 0 0">漏练的那天，是计划太满，还是时间不对？在下面改下周计划。</p>':'<p class="small muted" style="margin:12px 0 0">'+(done?'保持住。如果太轻松，下周可以加一点量。':'本周刚开始。')+'</p>')+'</div>';
-  h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+'</div>';
+  h+='<div class="card"><div class="row between"><h2 style="margin:0">本周计划</h2><span class="chip grey">第 '+(w+1)+' 周</span></div>'+planTable(cur)+
+  '<button class="btn soft block" style="margin-top:12px" id="addCal">📅 加到手机日历（练习日 '+esc(cur.time)+' 提醒）</button><p class="small muted" style="margin:6px 0 0;text-align:center">练习日自动重复到结营；改了提醒时间再加一次即可</p></div>';
   h+='<div class="card"><div class="row between"><h2 style="margin:0">下周计划</h2>'+(next?'<span class="chip brand">已修改，下周生效</span>':'<span class="chip grey">和本周一样</span>')+'</div>'+
   (next?planTable(next.plan):'<p class="small muted" style="margin:8px 0 0">改计划只在下周生效。这样就不会出现“今天累了，临时少练点”。</p>')+
   '<button class="btn soft block" style="margin-top:12px" id="editNext">修改下周计划</button></div>';
@@ -646,6 +694,8 @@ function planTable(p){
   p.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
+  on('#addCal','click',function(){var txt=icsText(S.goal,today());if(!txt){toast('本周没有练习日');return;}
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();toast('打开下载的文件，选「添加到日历」');});
   on('#editNext','click',function(){
     var g=S.goal,w=weekIndex(g,today()),base=JSON.parse(JSON.stringify((g.plans.filter(function(p){return p.fromWeek>w;})[0]||{plan:planFor(g,today())}).plan));
     function body(){
@@ -677,7 +727,13 @@ function viewMoney(){
   '<div class="kv"><span>已扣（将捐出）</span><b>'+money(T.charged)+'</b></div><div class="kv"><span>待扣（可申诉）</span><b>'+money(T.pending)+'</b></div>'+
   '<div class="kv"><span>捐给</span><b>'+ch.name+'</b></div><div class="kv"><span>服务费（我们的收入）</span><b>'+money(g.fee)+'</b></div></div>';
   h+='<div class="card"><h2>扣款记录</h2>'+(g.ledger.filter(function(l){return l.status!=='void';}).length?g.ledger.filter(function(l){return l.status!=='void';}).slice().reverse().map(function(l){return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+money(l.amt)+' <span class="chip '+(l.status==='charged'?'grey':'bad')+'">'+(l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
-  h+='<div class="card tint small"><b>钱去哪了？</b>扣下的钱每月汇总一次，100% 捐给你选的机构，收据会发给你。我们只收服务费，所以我们最希望的是你做到。</div>';
+  h+='<div class="card faq"><h2>常见问题</h2>'+[
+    ['扣下的钱去哪了？','100% 捐给你选的 '+esc(ch.name)+'，每月汇总捐一次，捐款收据会发给你。我们不留一分。'],
+    ['平台收多少钱？','只收一次服务费，本期 '+money(g.fee)+'，开始时收、不退。这是我们唯一的收入，所以我们最希望的是你做到。'],
+    ['什么时候扣、扣多少？','漏练一天扣承诺金的 1/20（你是 '+money(perMiss(g))+'）。第二天先通知你，满 24 小时后，在周日合并扣一次；最多扣到承诺金为止。'],
+    ['生病或有急事怎么办？','普通模式每期有 2 次机会：当天点「报备」，或漏练后在待扣款卡上「申诉」，通过就不扣。硬核模式不能申诉。'],
+    ['现在会真的扣钱吗？','不会。现在是演示版，不连接任何付款。']
+  ].map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>';}).join('')+'</div>';
   h+='<button class="btn danger block" id="resetAll">删除这一期（演示用）</button>';
   return h;
 }
