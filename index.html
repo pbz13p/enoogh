@@ -250,7 +250,12 @@ function exportBackup(){try{var tx=JSON.stringify(S),bl=new Blob([tx],{type:'app
 function validBackup(o){return !!(o&&o.v===1&&typeof o.ui==='object'&&Array.isArray(o.history)&&(o.goal===null||(o.goal&&typeof o.goal.start==='string'&&Array.isArray(o.goal.plans)&&Array.isArray(o.goal.ledger)&&typeof o.goal.days==='object')));}
 function importBackup(){pickFile('fileBackup',function(f){if(f.size>8e6){toast('这个文件太大，不像一诺的备份');return;}var fr=new FileReader();fr.onload=function(){var o=null;try{o=JSON.parse(fr.result);}catch(e){}
   if(!validBackup(o)){toast('这不是一诺的备份文件');return;}o.ui.tab='today';S=o;save();settle();save();render();window.scrollTo(0,0);toast('已恢复'+(o.goal?'「'+o.goal.name+'」':''));};fr.readAsText(f);});}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('手机存储空间不够，部分照片可能没保存');}}
+/* 浏览器存储一般只有 5MB 左右，录音和照片很快会占满。满了先清掉旧的证据（打卡记录本身保留），保证今天的打卡一定能存上 */
+function pruneMedia(st,keep){var n=0,t=today(),gs=[st.goal].concat((st.history||[]).map(function(h){return h.goal;})).filter(Boolean);
+  gs.forEach(function(g){Object.keys(g.days||{}).forEach(function(k){var r=g.days[k];if(((r.photos&&r.photos.length)||r.audio)&&diffDays(fromKey(k),t)>keep){r.photos=[];r.audio=null;r.mediaPruned=true;n++;}});});return n;}
+function save(){var tx=JSON.stringify(S);try{localStorage.setItem(KEY,tx);return;}catch(e){}
+  var steps=[14,7,3,1,0];for(var i=0;i<steps.length;i++){if(!pruneMedia(S,steps[i]))continue;try{localStorage.setItem(KEY,JSON.stringify(S));toast('手机存储快满了，已清掉 '+steps[i]+' 天前的打卡照片和录音（打卡记录都在）');return;}catch(e){}}
+  toast('手机存储空间不够，这次没保存成功。去「承诺金」页导出备份，或删掉今天几张照片再试');}
 
 /* ---------- dates (local, with demo offset) ---------- */
 function realToday(){var d=new Date();d.setHours(0,0,0,0);return d;}
@@ -389,7 +394,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.pruneMedia=pruneMedia;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -715,6 +720,7 @@ function viewToday(){
   return h;
 }
 function proofView(r){
+  if(r.mediaPruned&&!(r.photos&&r.photos.length)&&!r.audio)return '<div class="card small muted">这天的照片和录音已清理，节省手机空间（打卡记录还在）。</div>';
   if(!(r.photos&&r.photos.length)&&!r.audio)return '';
   return '<div class="card"><h3>今天的证据</h3><div class="proof">'+(r.photos||[]).map(function(src){return '<img class="thumb" src="'+src+'" alt="打卡截图">';}).join('')+'</div>'+(r.audio?'<audio controls src="'+r.audio+'" style="margin-top:10px;max-width:100%"></audio>':'')+'</div>';
 }

@@ -346,5 +346,9 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
 { const X = '<img src=x onerror=1>'; const sx = goal(); sx.goal.name = X; sx.goal.plans[0].plan.time = X; sx.goal.plans[0].plan.tasks[0].name = X;
   let bad = false; ['today', 'plan', 'money', 'learn'].forEach(t => { sx.ui.tab = t; if (run(sx, '2026-11-12').html.includes('<img src=x')) bad = true; });
   ok(!bad, '目标名、任务名、提醒时间都转义，不能注入代码'); }
+{ const sp = goal(); sp.goal.days = { '2026-11-01': { done: true, photos: ['a'], audio: 'b' }, '2026-11-11': { done: true, photos: ['c'] } };
+  const rp = run(goal(), '2026-11-20'); const n = rp.ctx.window.__test.pruneMedia(sp, 14);
+  ok(n === 1 && sp.goal.days['2026-11-01'].done && !sp.goal.days['2026-11-01'].audio && sp.goal.days['2026-11-01'].mediaPruned && sp.goal.days['2026-11-11'].photos[0] === 'c', '存储满时只清旧证据，打卡记录保留');
+  ok(/function save\(\)\{var tx=JSON\.stringify\(S\);try\{localStorage\.setItem/.test(code) && code.includes('var steps=[14,7,3,1,0]'), '保存失败会逐步清旧证据再重试'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
