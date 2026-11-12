@@ -974,7 +974,8 @@ function viewLearn(){
     return '<h1>坚持技巧</h1>'+(T?'<div class="card"><h2>'+tp.ic+' '+tp.name+'的小办法</h2>'+tl(T)+'</div>':'')+
       '<div class="card"><h2>任何目标都管用</h2>'+tl(GENERAL_TIPS)+'</div>';}
   var max=15;
-  var h='<h1>提分</h1><div class="card"><h2>时间先花在哪</h2><p class="small muted">各题型占总分的平均比重（Pearson 官方权重表，2025 年 7 月）。只用来排优先级，不能用来算分。</p>'+
+  var dx=g.pte&&g.pte.exam?diffDays(today(),fromKey(g.pte.exam)):99,ex=dx>=0&&dx<=21?'<div class="card tint small"><b>离考试还有 '+dx+' 天</b><div style="margin-top:4px">'+(dx>=10?'现在是做一次官方模考的好时候，看清楚哪一项最拖分，接下来的练习就集中在那一项。':dx>=3?'少做新题，多复盘错题；每天把最弱的那一项练一遍。':'考前几天保持手感就好：每天少量练习，早点睡。')+'</div></div>':'';
+  var h='<h1>提分</h1>'+ex+'<div class="card"><h2>时间先花在哪</h2><p class="small muted">各题型占总分的平均比重（Pearson 官方权重表，2025 年 7 月）。只用来排优先级，不能用来算分。</p>'+
   (function(){var mine={};planFor(g,today()).tasks.forEach(function(t){if(t.code&&PTE[t.code])mine[PTE[t.code].n]=1;});var cov=PTE_WEIGHTS.reduce(function(x,w){return x+(mine[w[0]]?w[1]:0);},0);
     return (cov?'<p class="small" style="margin:0 0 10px"><b>你这周练的题型，合计约占总分 '+cov+'%</b>（打勾的是你在练的）</p>':'')+
     PTE_WEIGHTS.map(function(w,i){return '<div class="wbar"><span>'+(mine[w[0]]?'✓ ':'')+w[0]+'</span><div class="b '+(mine[w[0]]?'hot':'')+'" style="width:'+(w[1]/max*100)+'%"></div><b>'+w[1]+'%</b></div>';}).join('');})()+'</div>';
