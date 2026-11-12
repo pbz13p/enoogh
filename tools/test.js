@@ -274,5 +274,11 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
   ok(r.ctx.window.__test.timeSel('x', '07:05').includes('<option value="05" selected>05 分</option>'), '非整刻钟的旧时间也保留');
   ok(!/type="time"/.test(html), '页面不再用系统 time 控件'); }
 
+// 点“开始第一天”后要回到页面顶部（之前停在确认页的滚动位置，看不到第几天和进度圈）
+{ ok(/S\.ui\.tab='today';save\(\);render\(\);window\.scrollTo\(0,0\)/.test(html), '开始第一天后滚回顶部'); }
+
+// 漏练后“回来”提示：只有一项任务时不说“第一项”
+{ ok(/p\.tasks\.length>1\?'先只做第一项':'现在就开始'/.test(html), '只有一项任务时回来提示不说“第一项”'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
