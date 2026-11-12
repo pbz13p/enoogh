@@ -251,7 +251,12 @@ function blank(){return {v:1,offset:0,goal:null,draft:null,ui:{tab:'today'},hist
 function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.v===1)return s;}catch(e){}return blank();}
 /* 备份：数据只存在这台设备的浏览器里，导出成文件，换手机时导入 */
 function exportBackup(){try{var tx=JSON.stringify(S),bl=new Blob([tx],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='enoogh-备份-'+key(today())+'.json';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);toast('备份已下载，存到网盘或发给自己');}catch(e){toast('这个浏览器不能导出，换 Safari 或 Chrome 试试');}}
-function validBackup(o){return !!(o&&o.v===1&&typeof o.ui==='object'&&Array.isArray(o.history)&&(o.goal===null||(o.goal&&typeof o.goal.start==='string'&&Array.isArray(o.goal.plans)&&Array.isArray(o.goal.ledger)&&typeof o.goal.days==='object')));}
+function validBackup(o){var D=/^\d{4}-\d\d-\d\d$/;if(!(o&&o.v===1&&o.ui&&typeof o.ui==='object'&&Array.isArray(o.history)))return false;
+  if(o.history.some(function(h){return !h||typeof h!=='object'||(h.end&&!D.test(h.end));}))return false;
+  var g=o.goal;if(g===null)return true;
+  return !!(g&&typeof g==='object'&&D.test(g.start)&&Array.isArray(g.plans)&&g.plans.length&&Array.isArray(g.ledger)&&g.days&&typeof g.days==='object'&&
+    Object.keys(g.days).every(function(k){return D.test(k);})&&g.ledger.every(function(l){return l&&D.test(l.day)&&(!l.noticed||D.test(l.noticed))&&(!l.chargedOn||D.test(l.chargedOn))&&typeof l.amt==='number';})&&
+    [100,300,500].indexOf(g.stake)>=0&&['card','prepay'].indexOf(g.pay)>=0&&['normal','hard'].indexOf(g.mode)>=0);}
 function importBackup(){pickFile('fileBackup',function(f){if(f.size>8e6){toast('这个文件太大，不像一诺的备份');return;}var fr=new FileReader();fr.onload=function(){var o=null;try{o=JSON.parse(fr.result);}catch(e){}
   if(!validBackup(o)){toast('这不是一诺的备份文件');return;}o.ui.tab='today';S=o;save();settle();save();render();window.scrollTo(0,0);toast('已恢复'+(o.goal?'「'+o.goal.name+'」':''));};fr.readAsText(f);});}
 /* 浏览器存储一般只有 5MB 左右，录音和照片很快会占满。满了先清掉旧的证据（打卡记录本身保留），保证今天的打卡一定能存上 */
