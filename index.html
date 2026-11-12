@@ -443,7 +443,7 @@ function buildPteTasks(D){
 function estMinutes(tasks){return Math.round(tasks.reduce(function(s,t){var m=t.code&&PTE[t.code]?PTE[t.code].m:(t.mins||0);return s+m*(t.code?t.qty:1);},0));}
 function stepPlan(D){
   if(!D.tasks.length){D.tasks=D.type==='pte'?buildPteTasks(D):[{name:'',qty:1,unit:'次',mins:30}];}
-  var h='<h1>每天做什么？</h1><p class="muted">写具体：几点、做什么、做多少。每周日可以改，下周生效。</p>';
+  var h='<h1>每天做什么？</h1><p class="muted">写具体：几点、做什么、做多少。之后随时能改，下周生效。</p>';
   if(D.carried==='up')h+='<div class="card tint small"><b>上一期几乎全勤，很稳。</b><div style="margin:4px 0 10px">已带上上一期的计划。想再挑战一点吗？每项任务量加约 20%，小步往上走最容易坚持。</div><div class="row"><button class="btn primary" id="bumpPlan" style="flex:1">加一点</button><button class="btn ghost" id="keepPlan" style="flex:1">保持原样</button></div></div>';
   else if(D.carried)h+='<div class="card tint small">'+(D.carried==='light'?'已带上上一期的计划，并按建议调轻：每周少练两天、每天任务量减半。觉得合适就直接下一步。':D.carried==='upped'?'已在上一期基础上每项加了一点。觉得多了，直接在下面改回去。':'已带上上一期的计划。觉得合适就直接下一步。')+'</div>';
   if(D.type==='pte'){
