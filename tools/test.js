@@ -41,7 +41,7 @@ function run(state, todayISO, hhmm) {
       getElementById: id => (id === 'app' ? app : makeEl()),
       querySelectorAll: () => [], createElement: () => makeEl(), body: makeEl()
     },
-    window: { __test: {}, scrollTo() {}, confirm: () => true }, navigator: {}, setTimeout() {}, setInterval() {}, clearInterval() {},
+    window: { __test: {}, scrollTo() {}, confirm: () => true }, navigator: { userAgent: 'iPhone' }, setTimeout() {}, setInterval() {}, clearInterval() {},
     Image: function () {}, console
   };
   ctx.window.document = ctx.document;

@@ -737,7 +737,7 @@ function viewToday(){
     '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':(function(t){return pledge?t.replace('交上证据','勾上承诺'):t;})(ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk)))+'</p></div>';
     if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
-  if(!isLate&&!S.ui.a2hs&&!isStandalone())h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
+  if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
   return h;
