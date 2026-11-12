@@ -262,5 +262,8 @@ s = goal(); s.goal = null; s.draft = { step: 1 }; r = run(null, '2026-11-12');
   ok(r.html.includes('连续 2 天在追'), '掉队后连续做到 2 天应显示“在追”');
   r = run(goal(), '2026-11-12'); ok(r.html.includes('掉队了') && !r.html.includes('天在追'), '一直没做时仍显示“掉队了”'); }
 
+// 确认页：点整行条款文字也能勾选（data-agree 放在整行上，按钮本身不重复绑定，避免点一下勾两次）
+{ ok(/<div class="task agree" data-agree="/.test(html) && !/<button class="check[^>]*data-agree/.test(html), '确认条款整行可点、且不会重复切换'); }
+
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -79,6 +79,7 @@ textarea.in{min-height:84px;resize:vertical}
 input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
 .field{margin-bottom:14px}
 .task{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.task.agree{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .task:first-child{border-top:0}
 .task .nm{flex:1;min-width:0}
 .task .nm .t{font-weight:600}
@@ -439,13 +440,13 @@ var RULES=['我已年满 18 岁。','我理解漏练一天扣承诺金的 1/20�
 function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
-  '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('<br>')+'</b></div>'+
+  '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+' '+esc(t.unit);}).join('<br>')+'</b></div>'+
   '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+D.time+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
   '<div class="kv"><span>服务费</span><b>'+money(fee)+'（不退）</b></div></div>';
-  h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){return '<div class="task"><button class="check '+(D.agree[i]?'on':'')+'" data-agree="'+i+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
+  h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){return '<div class="task agree" data-agree="'+i+'"><button class="check '+(D.agree[i]?'on':'')+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
   var all=RULES.every(function(r,i){return D.agree[i];});
   h+='<div class="card tint small">演示版：点“开始”不会扣任何钱。正式版会在这一步'+(D.pay==='card'?'绑定银行卡并收取服务费':'收取服务费和预付承诺金')+'。</div>';
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" id="startGoal" '+(all?'':'disabled')+'>开始第一天</button></div>';
