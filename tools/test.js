@@ -120,7 +120,10 @@ ok(r.ctx.window.__test.shareCard(r.saved.goal, 80, 16, 20, 5, 60) === null, '没
   ok(url.startsWith('https://enoogh.com/#w=') && w && w.n === 'PTE 提分' && w.d.length === 28 && w.d[0] === 'o' && w.d[1] === 'x' && w.d[2] === 't', '监督链接应带上目标名和每天状态');
   const v = T.viewWitness(w); ok(v.includes('漏了 1 天') && v.includes('做到 1 天') && v.includes('只读'), '监督页显示进度且注明只读');
   ok(T.parseWitness('#w=%7Bbad') === null && T.parseWitness('#w=' + encodeURIComponent('{"n":"x","s":"2026-11-09","a":"2026-11-10","d":"<script>"}')) === null && T.parseWitness('') === null, '坏的监督链接应安全忽略');
-  ok(!T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: '<img src=x>', s: '2026-11-09', a: '2026-11-10', d: 'oo' })))).includes('<img'), '监督页要转义目标名'); }
+  ok(!T.viewWitness(T.parseWitness('#w=' + encodeURIComponent(JSON.stringify({ n: '<img src=x>', s: '2026-11-09', a: '2026-11-10', d: 'oo' })))).includes('<img'), '监督页要转义目标名');
+  ok(!T.top(true).includes('演示版') && !T.top(true).includes('demoNext') && T.top().includes('演示版'), '监督人只读页不显示演示版“下一天”条'); }
+// 确认页的条款不能承诺还没有的功能（小组），也不能写死成考试
+{ const src = html; ok(!/公开打卡|不承诺考试成绩/.test(src) && src.includes('23:59 前打卡'), '确认条款要通用、只写真实存在的规则'); }
 
 // 本周日刚合并扣款：今天页要告诉用户扣了多少、捐给了谁
 s = goal(); r = run(s, '2026-11-15');

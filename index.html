@@ -304,10 +304,10 @@ function sheet(html,onMount){
   document.body.appendChild(bg); if(onMount)onMount(bg.firstChild,close); return close;
 }
 function on(sel,ev,fn,root){(root||$app).querySelectorAll(sel).forEach(function(el){el.addEventListener(ev,fn);});}
-function top(){
-  return '<div class="top">'+LOGO+'<div><div class="name">Enoogh <span class="muted small" style="font-weight:600">一诺</span></div><div class="sub">说到做到。做不到，就捐出去。</div></div><div class="spacer"></div></div>'+
+function top(ro){
+  return '<div class="top">'+LOGO+'<div><div class="name">Enoogh <span class="muted small" style="font-weight:600">一诺</span></div><div class="sub">说到做到。做不到，就捐出去。</div></div><div class="spacer"></div></div>'+(ro?'':
   '<div class="demo" role="note"><b>演示版</b><span class="muted">不扣钱 · '+fmtLong(today())+'</span><div class="spacer"></div>'+
-  '<button class="btn small ghost" id="demoNext" aria-label="模拟到下一天">下一天 ▶</button></div>';
+  '<button class="btn small ghost" id="demoNext" aria-label="模拟到下一天">下一天 ▶</button></div>');
 }
 function bindTop(){
   var b=document.getElementById('demoNext'); if(b)b.addEventListener('click',function(){S.offset++;save();settle();render();toast('已跳到 '+fmtLong(today()));});
@@ -341,7 +341,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.viewWitness=viewWitness;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -435,11 +435,11 @@ function stepStake(D){
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next>下一步</button></div>';
   return h;
 }
-var RULES=['我已年满 18 岁。','我理解漏练一天扣承诺金的 1/20，扣下的钱全部捐给我选的慈善机构。','我理解服务费不退。','我同意在小组里公开打卡。','我理解这里不承诺考试成绩，只看我有没有按自己的计划做。'];
+var RULES=['我已年满 18 岁。','我理解漏练一天扣承诺金的 1/20，扣下的钱全部捐给我选的慈善机构。','我理解服务费不退。','我理解每个练习日要在 23:59 前打卡，没打卡就算漏练。','我理解这里不承诺任何成绩或结果，只看我有没有按自己的计划做。'];
 function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
-  '<div class="kv"><span>每天</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('<br>')+'</b></div>'+
+  '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+esc(t.unit);}).join('<br>')+'</b></div>'+
   '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+D.time+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
@@ -503,7 +503,7 @@ function showCompare(){
   '<tr><td><b>平台收入</b></td><td>扣下的钱 + 订阅费</td><td>只收服务费</td></tr>'+
   '<tr><td><b>扣款</b></td><td>失败就扣</td><td>每周合并一次，扣前 24 小时通知</td></tr>'+
   '<tr><td><b>付款方式</b></td><td>信用卡</td><td>绑卡，或微信/支付宝预付</td></tr>'+
-  '<tr><td><b>帮你做到</b></td><td>只有提醒</td><td>计划太满会提醒你、题型技巧、官方资料、小组</td></tr>'+
+  '<tr><td><b>帮你做到</b></td><td>只有提醒</td><td>计划太满会提醒你、题型技巧、官方资料、请朋友当监督人</td></tr>'+
   '<tr><td><b>语言</b></td><td>英文</td><td>中文</td></tr></table>'+
   '<button class="btn primary block" style="margin-top:14px" data-close>知道了</button>',function(el,c){el.querySelector('[data-close]').addEventListener('click',c);});
 }
@@ -520,7 +520,7 @@ function renderTabs(){
 }
 function render(){
   var W=parseWitness(window.location&&window.location.hash);
-  if(W){$app.innerHTML=top()+viewWitness(W);bindTop();document.getElementById('tabs').classList.add('hide');
+  if(W){$app.innerHTML=top(true)+viewWitness(W);document.getElementById('tabs').classList.add('hide');
     on('#wMine','click',function(){if(window.history&&history.replaceState)history.replaceState(null,'',window.location.pathname);else window.location.hash='';render();window.scrollTo(0,0);});return;}
   if(!S.goal){renderOnboard();return;}
   settle();
