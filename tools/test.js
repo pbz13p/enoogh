@@ -339,5 +339,9 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
   const rw = run(null, '2026-11-13'); rw.ctx.location = { hash: '#w=' + w };
   const T = rw.ctx.window.__test; ok(typeof T.viewWitness !== 'function' || /本期 /.test(T.viewWitness(T.parseWitness('#w=' + w))), '监督人页写明本期日期');
   ok(code.includes('这个快照是 '), '监督人页提示快照过期'); }
+{ const rb = run(goal(), '2026-11-12'); const V = rb.ctx.window.__test.validBackup;
+  ok(V(goal()) && V(Object.assign(goal(), { goal: null })) && !V({ v: 2 }) && !V({ v: 1, ui: {}, history: [], goal: { start: 1 } }) && !V(null), '备份文件校验：一诺的能导入，别的拒绝');
+  s = goal(); s.ui.tab = 'money'; const rm = run(s, '2026-11-12'); ok(rm.html.includes('导出备份') && rm.html.includes('从备份恢复'), '承诺金页有备份');
+  ok(run(null, '2026-11-12').html.includes('bkInW'), '欢迎页可从备份恢复'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

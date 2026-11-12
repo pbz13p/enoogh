@@ -187,6 +187,7 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 <nav class="tabs hide" id="tabs" aria-label="主导航"><div class="in" id="tabsIn"></div></nav>
 <input type="file" id="filePhoto" accept="image/*" class="hide">
 <input type="file" id="fileAudio" accept="audio/*" class="hide">
+<input type="file" id="fileBackup" accept="application/json,.json" class="hide">
 
 <script>
 (function(){
@@ -244,6 +245,11 @@ var GENERAL_TIPS=['把任务放在固定时间、固定地点做，减少每天�
 var S=load();
 function blank(){return {v:1,offset:0,goal:null,draft:null,ui:{tab:'today'},history:[]};}
 function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.v===1)return s;}catch(e){}return blank();}
+/* 备份：数据只存在这台设备的浏览器里，导出成文件，换手机时导入 */
+function exportBackup(){try{var tx=JSON.stringify(S),bl=new Blob([tx],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='enoogh-备份-'+key(today())+'.json';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);toast('备份已下载，存到网盘或发给自己');}catch(e){toast('这个浏览器不能导出，换 Safari 或 Chrome 试试');}}
+function validBackup(o){return !!(o&&o.v===1&&typeof o.ui==='object'&&Array.isArray(o.history)&&(o.goal===null||(o.goal&&typeof o.goal.start==='string'&&Array.isArray(o.goal.plans)&&Array.isArray(o.goal.ledger)&&typeof o.goal.days==='object')));}
+function importBackup(){pickFile('fileBackup',function(f){if(f.size>8e6){toast('这个文件太大，不像一诺的备份');return;}var fr=new FileReader();fr.onload=function(){var o=null;try{o=JSON.parse(fr.result);}catch(e){}
+  if(!validBackup(o)){toast('这不是一诺的备份文件');return;}o.ui.tab='today';S=o;save();settle();save();render();window.scrollTo(0,0);toast('已恢复'+(o.goal?'「'+o.goal.name+'」':''));};fr.readAsText(f);});}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('手机存储空间不够，部分照片可能没保存');}}
 
 /* ---------- dates (local, with demo offset) ---------- */
@@ -383,7 +389,7 @@ function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
-if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
+if(window.__test){window.__test.nextDraft=nextDraft;window.__test.timeSel=timeSel;window.__test.bumpPlan=bumpPlan;window.__test.witnessLink=witnessLink;window.__test.parseWitness=parseWitness;window.__test.validBackup=validBackup;window.__test.viewWitness=viewWitness;window.__test.top=top;window.__test.appealDays=appealDays;window.__test.shareText=shareText;window.__test.icsText=icsText;window.__test.applyTpl=applyTpl;window.__test.shareCard=shareCard;window.__test.newDraft=newDraft;window.__test.estMinutes=estMinutes;} // 仅供 tools/test.js
 function renderOnboard(){
   var D=S.draft||(S.draft=newDraft());
   var steps='<div class="steps" aria-hidden="true">'+[0,1,2,3,4].map(function(i){return '<i class="'+(i<=D.step?'on':'')+'"></i>';}).join('')+'</div>';
@@ -404,7 +410,8 @@ function stepWelcome(){
   '<div class="how"><div class="n">2</div><div><b>每天打卡交证据</b><div class="muted small">截图、照片或录音都行，留着证据，申诉时有据可查。</div></div></div>'+
   '<div class="how"><div class="n">3</div><div><b>漏一天扣一小笔，全部捐出</b><div class="muted small">扣前 24 小时通知，生病急事可以申诉。</div></div></div></div>'+
   '<button class="btn primary block" data-next>开始定目标</button>'+
-  '<p class="small muted" style="margin:12px 0 0;text-align:center">扣下的钱捐给 '+CHARITIES.map(function(c){return esc(c.name.split('（')[0]);}).join(' 或 ')+'（孤独症慈善机构），由你选。</p>'+'<p class="small muted" style="margin-top:6px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>';
+  '<p class="small muted" style="margin:12px 0 0;text-align:center">扣下的钱捐给 '+CHARITIES.map(function(c){return esc(c.name.split('（')[0]);}).join(' 或 ')+'（孤独症慈善机构），由你选。</p>'+'<p class="small muted" style="margin-top:6px;text-align:center"><a href="#" id="whyUs">和其他承诺金 App 有什么不同？</a></p>'+
+  '<p class="small muted" style="margin-top:4px;text-align:center">换了手机？<a href="#" id="bkInW">从备份恢复</a></p>';
 }
 function stepType(D){
   return '<h1>你想坚持什么？</h1><p class="muted">先从一个目标开始。</p><div class="stack">'+
@@ -498,6 +505,7 @@ function bindOnboard(D){
   on('[data-next]','click',function(){clearToasts();D.step++;save();render();window.scrollTo(0,0);});
   on('[data-back]','click',function(){clearToasts();D.step--;save();render();window.scrollTo(0,0);});
   on('#whyUs','click',function(e){e.preventDefault();showCompare();});
+  on('#bkInW','click',function(e){e.preventDefault();importBackup();});
   on('[data-type]','click',function(){var t=this.getAttribute('data-type');if(D.type!==t||D.tpl){D.type=t;D.tasks=[];if(D.tpl){D.goalName='';D.tpl=null;D.days=[1,2,3,4,5,6];D.time='20:00';}}D.step=2;save();render();window.scrollTo(0,0);});
   on('[data-tpl]','click',function(){var id=this.getAttribute('data-tpl');if(D.tpl!==id)applyTpl(D,id);D.step=2;save();render();window.scrollTo(0,0);toast('已按「'+D.goalName+'」填好，数量和日子都能改');});
   on('[data-day]','click',function(){var d=+this.getAttribute('data-day'),i=D.days.indexOf(d);if(i>=0)D.days.splice(i,1);else D.days.push(d);save();render();});
@@ -849,10 +857,11 @@ function viewMoney(){
     ['生病或有急事怎么办？','普通模式每期有 2 次机会：当天点「报备」，或漏练后在待扣款卡上「申诉」，通过就不扣。硬核模式不能申诉。'],
     ['现在会真的扣钱吗？','不会。现在是演示版，不连接任何付款。']
   ].map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>';}).join('')+'</div>';
+  h+='<div class="card"><h3 style="margin:0 0 6px">备份</h3><p class="small muted" style="margin:0 0 12px">你的计划、打卡和照片只存在这台设备的浏览器里。换手机或清理浏览器前，先导出一份。</p><div class="row"><button class="btn soft" style="flex:1" id="bkOut">导出备份</button><button class="btn ghost" style="flex:1" id="bkIn">从备份恢复</button></div></div>';
   h+='<button class="btn danger block" id="resetAll">删除这一期（演示用）</button>';
   return h;
 }
-function bindMoney(){on('#resetAll','click',function(){var b=this;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='再点一次确认删除';return;}S=blank();save();render();toast('已清空，重新开始');});}
+function bindMoney(){on('#bkOut','click',exportBackup);on('#bkIn','click',importBackup);on('#resetAll','click',function(){var b=this;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='再点一次确认删除';return;}S=blank();save();render();toast('已清空，重新开始');});}
 
 /* learn */
 function viewLearn(){
