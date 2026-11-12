@@ -615,7 +615,7 @@ function progressLine(g){
   var sk=onTrack?0:(doneStreak(g,t)||doneStreak(g,addDays(t,-1)));
   return '<div class="track" aria-label="本期进度线"><div class="hd"><b class="'+(onTrack?'on':'off')+'">'+(onTrack?'在轨道上':(sk>=2?'掉队 '+P.miss+' 天 <span style="color:var(--brand)">· 连续 '+sk+' 天在追</span>':'掉队了 '+P.miss+' 天'))+'</b><span class="muted">做到 '+P.done+' 天 · 还剩 '+P.left+' 个练习日</span></div>'+
     '<div class="dots">'+dots+'</div>'+
-    '<div class="ft">'+(onTrack?'照这个速度，结营时承诺金<b style="color:var(--brand-ink)">全额不扣</b>。':'照这个速度，结营约扣 <b style="color:var(--bad)">'+money(P.proj)+'</b>；之后天天做到，只扣已漏的 '+money(Math.min(g.stake,totals(g).charged+totals(g).pending))+'。')+'</div>'+
+    '<div class="ft">'+(onTrack?'照这个速度，结营时承诺金<b style="color:var(--brand-ink)">全额不扣</b>。':'从今天起天天做到，就只扣已漏的 <b style="color:var(--ink)">'+money(Math.min(g.stake,totals(g).charged+totals(g).pending))+'</b>，剩下的承诺金一分不少。<span class="muted">（照现在的节奏，结营约扣 '+money(P.proj)+'）</span>')+'</div>'+
     '<button class="btn ghost block" id="witness" style="margin-top:12px;min-height:40px;font-size:14px">👀 请朋友当监督人</button></div>';
 }
 /* 监督人（参考 StickK 的 Referee）：不需要后端，把本期进度做成一个只读快照链接，发给朋友打开就能看 */

@@ -226,9 +226,12 @@ s = goal(); r = run(s, '2026-11-09');
 ok(r.html.includes('在轨道上') && r.html.includes('全额不扣'), '没漏练时进度线应显示在轨道上');
 s = goal(); s.goal.days['2026-11-09'] = { done: true }; r = run(s, '2026-11-11');
 // 2 个已过练习日漏 1 天（50%），剩 21 个练习日（含今天）→ 再漏约 11 天 → 共 12 天 × $15 = $180
-ok(r.html.includes('掉队了 1 天') && r.html.includes('约扣 <b style="color:var(--bad)">$180'), '漏练后进度线应显示掉队和预计扣款');
+ok(r.html.includes('掉队了 1 天') && r.html.includes('结营约扣 $180') && r.html.includes('只扣已漏的 <b style="color:var(--ink)">$15'), '漏练后进度线应显示掉队和预计扣款');
 s = goal(); r = run(s, '2026-11-30');
-ok(r.html.includes('约扣 <b style="color:var(--bad)">$300'), '预计扣款不应超过承诺金');
+ok(r.html.includes('结营约扣 $300') && !r.html.includes('结营约扣 $3000'), '预计扣款不应超过承诺金');
+// 掉队时先说“之后天天做到只扣已漏的”，再说最坏情况，不吓人
+s = goal(); s.goal.days['2026-11-09'] = { done: true }; r = run(s, '2026-11-11');
+ok(r.html.indexOf('只扣已漏的') > -1 && r.html.indexOf('只扣已漏的') < r.html.indexOf('结营约扣'), '进度线应先说能挽回的，再说最坏情况');
 
 // 加到手机日历：.ics 每周重复，含练习日和提醒时间，到结营为止
 s = goal(); s.ui.tab = 'plan'; r = run(s, '2026-11-12');
