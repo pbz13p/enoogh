@@ -587,8 +587,10 @@ function renderTabs(){
   document.getElementById('tabsIn').innerHTML=TABDEF.map(function(t){var label=t[0]==='learn'&&g.type!=='pte'?'技巧':t[1];return '<button class="tab '+(S.ui.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'" aria-current="'+(S.ui.tab===t[0]?'page':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+t[2]+'</svg>'+label+'</button>';}).join('');
   document.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){document.querySelectorAll('.toast').forEach(function(x){x.remove();});S.ui.tab=this.getAttribute('data-tab');save();render();window.scrollTo(0,0);};});
 }
+function setTitle(x){try{document.title=(x?x+' · ':'')+'Enoogh 一诺 · 说到做到';}catch(e){}}
 function render(){
   var W=parseWitness(window.location&&window.location.hash);
+  setTitle(W?'「'+W.n+'」的打卡进度':S.goal&&!S.goal.finished?S.goal.name:'');
   if(W){$app.innerHTML=top(true)+viewWitness(W);document.getElementById('tabs').classList.add('hide');
     on('#wMine','click',function(){if(window.history&&history.replaceState)history.replaceState(null,'',window.location.pathname);else window.location.hash='';render();window.scrollTo(0,0);});return;}
   if(!S.goal){renderOnboard();return;}
