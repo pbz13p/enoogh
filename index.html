@@ -870,10 +870,13 @@ function icsFold(line){var out='',n=0,cs=Array.from(line);for(var i=0;i<cs.lengt
 function missDayTip(g,mid){var c=[0,0,0,0,0,0,0],st0=fromKey(g.start);for(var i=0;i<CYCLE_DAYS;i++){var d=addDays(st0,i);if(dayStatus(g,d)==='miss')c[d.getDay()]++;}
   var m=0,wd=-1;c.forEach(function(n,i){if(n>m){m=n;wd=i;}});if(m<2)return '';
   return '<div class="card tint small"><b>'+WD[wd]+'漏得最多（'+m+' 次）</b><div style="margin-top:4px">'+(mid?'下周':'下一期')+'可以把'+WD[wd]+'设成休息日，或者那天的量减半。</div></div>';}
+function showDay(g,k){var r=g.days[k]||{},d=fromKey(k),st=dayStatus(g,d),led=g.ledger.filter(function(l){return l.day===k;})[0];
+  var body=st==='done'?'<p>✓ 完成'+(r.doneAt?'，打卡时间 '+esc(r.doneAt):'')+'</p>':st==='excused'?'<p>已申诉/报备，不扣钱。原因：'+esc(r.reason||'')+'</p>':'<p>漏练'+(led&&led.status!=='void'?'，'+(led.status==='charged'?'已扣 ':'待扣 ')+money(led.amt):'')+'。</p>';
+  sheet('<h2>'+fmtLong(d)+'</h2>'+body+proofView(r).replace('今天的证据','这天的证据')+'<button class="btn ghost block" data-close>关闭</button>',function(el,close){el.querySelector('[data-close]').onclick=close;});}
 function cycleCal(g){var st0=fromKey(g.start),t=today(),ic={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''},lb={done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:''};
   var head='<div class="week cal-h">'+[0,1,2,3,4,5,6].map(function(i){return '<div class="small muted" style="text-align:center">'+WD[addDays(st0,i).getDay()].slice(1)+'</div>';}).join('')+'</div>';
   var h='';for(var w=0;w<4;w++){h+='<div class="week">';for(var i=0;i<7;i++){var d=addDays(st0,w*7+i),st=dayStatus(g,d),cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
-    h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+fmt(d)+' '+(lb[st]||'')+'"><span style="font-size:11px">'+(d.getMonth()+1)+'/'+d.getDate()+'</span><b>'+(ic[st]||'&nbsp;')+'</b></div>';}h+='</div>';}
+    var tap=st==='done'||st==='miss'||st==='excused';h+='<'+(tap?'button type="button" data-cal="'+key(d)+'"':'div')+' class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+fmt(d)+' '+(lb[st]||'')+(tap?'，点开看详情':'')+'" style="border:0;font:inherit;width:100%"><span style="font-size:11px">'+(d.getMonth()+1)+'/'+d.getDate()+'</span><b>'+(ic[st]||'&nbsp;')+'</b></'+(tap?'button':'div')+'>';}h+='</div>';}
   return '<div class="card"><div class="row between"><h2 style="margin:0">本期日历</h2><span class="chip grey">'+fmt(st0)+' – '+fmt(cycleEnd(g))+'</span></div>'+head+h+'</div>';}
 function addToCalendar(){var txt=icsText(S.goal,today());if(!txt){toast('本周没有练习日');return;}
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();S.ui.calDone=1;save();if(S.ui.tab==='plan')render();toast('打开下载的文件，选「添加到日历」');}
@@ -900,6 +903,7 @@ function planTable(p){
   p.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
+  on('[data-cal]','click',function(){showDay(S.goal,this.getAttribute('data-cal'));});
   on('#addCal','click',addToCalendar);
   on('#rename','click',function(){var g=S.goal;sheet('<h2>改目标名称</h2><div class="field"><input class="in" id="rnIn" maxlength="30" value="'+esc(g.name)+'" aria-label="目标名称"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="rnSave">保存</button></div>',function(el,close){
     el.querySelector('[data-close]').onclick=close;el.querySelector('#rnSave').onclick=function(){var v=(el.querySelector('#rnIn').value||'').trim();if(!v){toast('名称不能空着');return;}g.name=v.slice(0,30);save();close();render();toast('已改名');};});});
@@ -1014,6 +1018,7 @@ function renderFinished(){
   '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>'+
   '<button class="btn ghost block" id="newGoal" style="margin-top:10px">换一个目标</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
+  on('[data-cal]','click',function(){showDay(g,this.getAttribute('data-cal'));});
   document.getElementById('shareRes').onclick=function(){var tx=shareText(g,rate,done,due,best,T.charged),b=this;
     function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='复制文字';},2500);}
     if(navigator.share){navigator.share({title:'Enoogh 一诺',text:tx}).catch(function(){});}
