@@ -350,5 +350,6 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
   const rp = run(goal(), '2026-11-20'); const n = rp.ctx.window.__test.pruneMedia(sp, 14);
   ok(n === 1 && sp.goal.days['2026-11-01'].done && !sp.goal.days['2026-11-01'].audio && sp.goal.days['2026-11-01'].mediaPruned && sp.goal.days['2026-11-11'].photos[0] === 'c', '存储满时只清旧证据，打卡记录保留');
   ok(/function save\(\)\{var tx=JSON\.stringify\(S\);try\{localStorage\.setItem/.test(code) && code.includes('var steps=[14,7,3,1,0]'), '保存失败会逐步清旧证据再重试'); }
+{ const se = goal(); se.goal.pte.exam = '2026-11-12'; ok(run(se, '2026-11-12').html.includes('今天考试，加油') && run(se, '2026-11-14').html.includes('考试已过'), '考试当天和考后不再显示“距离考试 0 天”'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
