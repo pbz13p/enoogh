@@ -647,6 +647,8 @@ function viewWitness(w){
   var a=fromKey(w.a),on=!miss;
   return '<div class="hero-ic">'+LOGO_W+'</div><h1 style="margin-bottom:6px">「'+esc(w.n)+'」</h1>'+
   '<p class="muted" style="margin:0 0 14px">你的朋友请你当监督人。这是 TA 截至 '+(a.getMonth()+1)+'月'+a.getDate()+'日 的打卡进度（只读快照）。</p>'+
+  '<p class="small muted" style="margin:-6px 0 14px">本期 '+fmt(fromKey(w.s))+' – '+fmt(addDays(fromKey(w.s),CYCLE_DAYS-1))+' · 共 '+CYCLE_DAYS+' 天</p>'+
+  (function(){var age=diffDays(a,today());return age>=3?'<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><b class="small">这个快照是 '+age+' 天前的</b><div class="small" style="margin-top:4px">问问 TA 最近怎么样，让 TA 发一个新链接给你。</div></div>':'';})()+
   '<div class="card"><div class="track" style="margin:0;border:0;padding:0"><div class="hd"><b class="'+(on?'on':'off')+'">'+(on?'在轨道上':'漏了 '+miss+' 天')+'</b><span class="muted">做到 '+done+' 天 · 还剩 '+left+' 个练习日</span></div><div class="dots">'+dots+'</div></div></div>'+
   '<div class="card tint small"><b>监督人可以做什么？</b><div style="margin-top:4px">每周问 TA 一句“这周怎么样？”，让 TA 再发一次新链接给你。有人在看，人就更容易做到。'+(w.c?'TA 漏练扣下的承诺金会全部捐给 '+esc(w.c)+'。':'')+'</div></div>'+
   '<button class="btn primary block" id="wMine">我也想定一个目标</button>';

@@ -335,5 +335,9 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
   ok(lines.every(l => Buffer.byteLength(l) <= 75), '.ics 每行不超过 75 字节');
   const unfold = t2.replace(/\r\n /g, '');
   ok(unfold.includes('SUMMARY:一诺打卡：读书\\, 跑步\\; 早睡🌙') && unfold.includes('最晚第二天中午 12 点'), '.ics 逗号分号已转义，早睡写明次日中午截止'); }
+{ const w = encodeURIComponent(JSON.stringify({ n: '读书', s: '2026-11-02', a: '2026-11-05', d: 'ooxo' + 'f'.repeat(24), c: 'Amaze' }));
+  const rw = run(null, '2026-11-13'); rw.ctx.location = { hash: '#w=' + w };
+  const T = rw.ctx.window.__test; ok(typeof T.viewWitness !== 'function' || /本期 /.test(T.viewWitness(T.parseWitness('#w=' + w))), '监督人页写明本期日期');
+  ok(code.includes('这个快照是 '), '监督人页提示快照过期'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
