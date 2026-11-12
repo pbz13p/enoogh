@@ -79,6 +79,11 @@ textarea.in{min-height:84px;resize:vertical}
 input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
 .field{margin-bottom:14px}
 .task{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.task.ctask{display:block}
+.cq{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--muted)}
+.cq input{width:56px;min-height:36px;padding:4px 6px;text-align:center;color:var(--ink);font-size:15px}
+.cq input.unit{width:48px;color:var(--ink)}
+.cq .sep{margin:0 2px;color:var(--line)}
 .task.agree{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .task:first-child{border-top:0}
 .task .nm{flex:1;min-width:0}
@@ -146,7 +151,7 @@ input.in:focus,select.in:focus,textarea.in:focus{outline:2px solid var(--brand);
 .steps{display:flex;gap:6px;margin:6px 0 14px}
 .steps i{flex:1;height:4px;border-radius:9px;background:#DCE7E5}
 .steps i.on{background:var(--brand)}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast{position:fixed;left:50%;width:max-content;max-width:calc(100vw - 32px);line-height:1.45;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .sheet-bg{position:fixed;inset:0;background:rgba(18,38,44,.35);z-index:40;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow:auto}
 .logo{flex:none}
@@ -404,12 +409,13 @@ function stepPlan(D){
   }
   h+='<div class="card"><h3>练习的日子</h3><div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'soft':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'">'+WD[d]+'</button>';}).join('')+'</div>'+
   '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label><input class="in" id="pTime" type="time" value="'+D.time+'"></div></div>';
-  h+='<div class="card"><div class="row between"><h3 style="margin:0">每天的任务</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
+  h+='<div class="card"><div class="row between"><h3 style="margin:0">每次练习要做</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
   D.tasks.map(function(t,i){
-    return '<div class="task"><div class="nm">'+(t.code?'<div class="t">'+esc(t.name)+'</div>':'<input class="in" data-tname="'+i+'" placeholder="任务名称" value="'+esc(t.name)+'" style="min-height:40px">')+
-    (t.code?'':'<div class="d" style="margin-top:6px">每次约 <input class="in" data-tmins="'+i+'" type="number" inputmode="numeric" value="'+(t.mins||0)+'" style="width:64px;min-height:34px;display:inline-block;padding:4px 6px"> 分钟</div>')+'</div>'+
-    '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量">'+(t.code?'<span class="small muted">'+esc(t.unit)+'</span>':'<input class="in unit" data-tunit="'+i+'" value="'+esc(t.unit)+'" placeholder="次" maxlength="4" aria-label="单位，比如次、公里、页">')+'</div>'+
-    '<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button></div>';
+    var del='<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button>';
+    if(!t.code)return '<div class="task ctask"><div class="row" style="gap:8px"><input class="in" data-tname="'+i+'" placeholder="任务名称，比如：跑步" value="'+esc(t.name)+'" style="min-height:42px;flex:1;min-width:0">'+del+'</div>'+
+      '<div class="cq"><span>每次</span><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><input class="in unit" data-tunit="'+i+'" value="'+esc(t.unit)+'" placeholder="次" maxlength="4" aria-label="单位，比如次、公里、页"><span class="sep">·</span><span>约</span><input class="in" data-tmins="'+i+'" type="number" inputmode="numeric" value="'+(t.mins||0)+'" aria-label="大约几分钟"><span>分钟</span></div></div>';
+    return '<div class="task"><div class="nm"><div class="t">'+esc(t.name)+'</div></div>'+
+    '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><span class="small muted">'+esc(t.unit)+'</span></div>'+del+'</div>';
   }).join('')+'</div>';
   var mins=estMinutes(D.tasks), warn='';
   if(mins>60)warn='<div class="card warnc" style="margin:12px 0 0"><b>计划可能太满了：</b>估计每天约 '+mins+' 分钟。第一周建议控制在 30–45 分钟，做到了再加。</div>';

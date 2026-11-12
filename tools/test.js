@@ -188,6 +188,9 @@ ok(!r.html.includes('还差：'), '都填好后不再显示“还差”提示');
 // 自定义任务的单位可以自己改（公里、页、分钟）
 s.draft.tasks[0].unit = '公里'; r = run(s, '2026-11-11');
 ok(r.html.includes('data-tunit="0"') && r.html.includes('value="公里"'), '自定义任务应有可改的单位输入框');
+// 自定义任务一行一项：名称占满一行，数量/单位/分钟在下一行，顺序固定
+(function(){ var m = r.html.match(/<div class="cq">([\s\S]*?)<\/div>/);
+  ok(r.html.includes('task ctask') && m && m[1].indexOf('data-tqty="0"') < m[1].indexOf('data-tunit="0"') && m[1].indexOf('data-tunit="0"') < m[1].indexOf('data-tmins="0"'), '自定义任务的数量、单位、分钟应排在名称下面同一行'); })();
 
 // 今天还没打卡：任务卡在待扣款提醒前面（首屏先给能做的事）；打完卡后待扣款照样显示
 s = goal(); s.goal.days['2026-11-09'] = { done: true };
