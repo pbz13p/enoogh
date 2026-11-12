@@ -283,6 +283,8 @@ function inCycle(goal,d){var i=diffDays(fromKey(goal.start),d);return i>=0&&i<CY
 function rec(goal,k){return goal.days[k]||(goal.days[k]={});}
 /* 早睡/戒奶茶：判断要到第二天才算数，昨天的卡可在次日中午 12 点前补打 */
 var GRACE_HOUR={sleep:12,milktea:12};
+/* 没法拍照证明的目标：用一句诚信承诺代替照片 */
+var PLEDGE={milktea:'我保证今天一杯奶茶都没喝。'};
 function graceOpen(goal,d){var h=GRACE_HOUR[goal.tpl];return !!h&&diffDays(d,today())===1&&new Date().getHours()<h;}
 var lateMode=false;
 function shownDay(){var g=S.goal,y=addDays(today(),-1);return lateMode&&g&&dayStatus(g,y)==='late'?y:today();}
@@ -711,17 +713,18 @@ function viewToday(){
   } else if(st==='excused'){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
-    var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
+    var pledge=PLEDGE[g.tpl], all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=pledge?!!r.pledge:(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
     h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':esc(p.time)+' 提醒 · '+(GRACE_HOUR[g.tpl]?'次日 12:00 截止':'23:59 截止'))+'</span></div><div style="margin-top:6px">'+
     (backNote(g,t,p,r)||deadlineNote(g,isLate))+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
-    h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
+    if(pledge)h+='<div class="card"><h2>诚信打卡</h2><p class="small muted">“没喝”没法拍照证明，就用一句承诺代替。说到做到。</p><div class="task"><button class="check '+(r.pledge?'on':'')+'" id="pledgeTick" role="checkbox" aria-checked="'+!!r.pledge+'" aria-label="'+esc(pledge)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(pledge)+'</div></div></div>';
+    else h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
     '<div class="proof">'+(r.photos||[]).map(function(src,i){return '<img class="thumb" src="'+src+'" alt="打卡截图 '+(i+1)+'">';}).join('')+'<button class="upl" id="addPhoto" aria-label="上传截图或照片"><span style="font-size:22px">＋</span>截图/照片</button></div>';
     if(g.type==='pte'){
       h+='<div style="margin-top:14px"><div class="rec" id="recBox">'+(r.audio?'<audio controls src="'+r.audio+'" style="max-width:100%"></audio><button class="btn small ghost" id="recAgain">重录</button>':'<button class="btn small soft" id="recStart">🎙 开始录音（30 秒）</button><button class="btn small ghost" id="audioFile">上传录音文件</button>')+'</div></div>';
     }
     h+='<button class="btn primary block" style="margin-top:16px" id="submitDay" '+(all&&proofOk?'':'disabled')+'>打卡完成</button>'+
-    '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk))+'</p></div>';
+    '<p class="small muted" style="margin:8px 0 0;text-align:center">'+(all&&proofOk?'':(function(t){return pledge?t.replace('交上证据','勾上承诺'):t;})(ckHint(p.tasks.filter(function(x,i){return !(r.tasks&&r.tasks[i]);}).length,proofOk)))+'</p></div>';
     if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
   if(!isLate&&!S.ui.a2hs&&!isStandalone())h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
@@ -737,6 +740,7 @@ function proofView(r){
 var recState=null;
 function bindToday(){
   var g=S.goal, k=key(shownDay()), r=rec(g,k), wasLate=k!==key(today());
+  on('#pledgeTick','click',function(){r.pledge=!r.pledge;save();render();});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});

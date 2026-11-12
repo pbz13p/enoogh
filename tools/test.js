@@ -356,5 +356,9 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   ok(late.html.includes('离今天截止还有 2 小时 29 分钟') && !early.html.includes('离今天截止'), '截止前 4 小时提示还剩多久');
   const s2 = goal(); s2.goal.type = 'custom'; s2.goal.tpl = 'sleep'; ok(!run(s2, '2026-11-12', '21:30').html.includes('离今天截止'), '早睡/戒奶茶不显示 23:59 倒计时'); }
 { const sa = goal(); ok(run(sa, '2026-11-12').html.includes('把一诺放到手机桌面'), '今天页提示加到手机桌面'); sa.ui.a2hs = 1; ok(!run(sa, '2026-11-12').html.includes('把一诺放到手机桌面'), '点“知道了”后不再提示'); }
+{ const sm = goal(); sm.goal.type = 'custom'; sm.goal.tpl = 'milktea'; sm.goal.start = '2026-11-12'; sm.goal.plans[0].plan.tasks = [{ name: '今天没喝奶茶', qty: 1, unit: '天' }];
+  let h = run(sm, '2026-11-12').html; ok(h.includes('诚信打卡') && !h.includes('交打卡证据') && h.includes('勾上承诺'), '戒奶茶用诚信承诺代替照片');
+  sm.goal.days['2026-11-12'] = { tasks: { 0: true }, pledge: true }; h = run(sm, '2026-11-12').html;
+  ok(/id="submitDay" >/.test(h) || /id="submitDay" (?!disabled)/.test(h), '勾了承诺就能打卡'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
