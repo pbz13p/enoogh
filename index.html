@@ -702,6 +702,8 @@ function viewWitness(w){
   '<button class="btn primary block" id="wMine">我也想定一个目标</button>';
 }
 function ckHint(left,proofOk){return left?'还差 '+left+' 项没勾'+(proofOk?'，勾完就能打卡。':'，再交上证据就能打卡。'):'就差最后一步：交上证据就能打卡。';}
+var installEvt=null;
+if(window.addEventListener){window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();installEvt=e;if(S.goal&&S.ui.tab==='today'&&!document.querySelector('.sheet-bg'))render();});window.addEventListener('appinstalled',function(){S.ui.a2hs=1;save();});}
 function isStandalone(){try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}catch(e){return false;}}
 function calCard(p){if(S.ui.calDone||S.ui.calTip)return '';return '<div class="card tint small" id="calCard" style="margin-top:12px"><b>让手机每天提醒你</b><div style="margin:4px 0 10px;line-height:1.6">加到手机日历，练习日 '+esc(p&&p.time||'')+' 自动响，到结营为止。</div><div class="row"><button class="btn small primary" id="calGo" style="flex:1">📅 加到手机日历</button><button class="btn small ghost" id="calX">不用了</button></div></div>';}
 function viewToday(){
@@ -763,7 +765,7 @@ function viewToday(){
     if(g.mode!=='hard'&&!isLate)h+='<button class="btn ghost block" id="excuseToday">今天生病/有急事？报备（剩 '+appealsLeft(g)+' 次）</button>';
   }
   if(!isLate&&cs.day<=7)h+=calCard(p);
-  if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div></div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
+  if(!isLate&&!S.ui.a2hs&&!isStandalone()&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent||''))h+='<div class="card tint small" id="a2hsCard" style="margin-top:12px"><div class="row between" style="align-items:flex-start"><div style="flex:1"><b>把一诺放到手机桌面</b><div style="margin-top:4px;line-height:1.6">'+(/iPhone|iPad|iPod/.test(navigator.userAgent||'')?'在 Safari 点下方「分享」→「添加到主屏幕」。':installEvt?'点下面的按钮一键安装。':'在浏览器菜单（右上角 ⋮）点「添加到主屏幕」或「安装应用」。')+'每天一点就打开，比找网页快。</div>'+(installEvt?'<button class="btn small primary" id="a2hsGo" style="margin-top:10px">一键安装</button>':'')+'</div><button class="btn small ghost" id="a2hsX" aria-label="不再提示">知道了</button></div></div>';
   // 待扣款/已扣款统一放最后：先给今天的状态（要做什么/已完成的鼓励），账单不打断打卡流程，申诉入口照样在
   h+=pendCard+justCard;
   return h;
@@ -781,6 +783,7 @@ function bindToday(){
   on('#calGo','click',function(){addToCalendar();render();});
   on('#calX','click',function(){S.ui.calTip=1;save();render();});
   on('#goPlan','click',function(){S.ui.tab='plan';save();render();window.scrollTo(0,0);});
+  on('#a2hsGo','click',function(){var e=installEvt;if(!e)return;installEvt=null;e.prompt();if(e.userChoice)e.userChoice.then(function(r){if(r&&r.outcome==='accepted'){S.ui.a2hs=1;save();}render();});});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});
