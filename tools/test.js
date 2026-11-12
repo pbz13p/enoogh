@@ -377,5 +377,6 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
 { const sc = goal(); sc.ui.tab = 'money'; ok(run(sc, '2026-11-12').html.includes('href="https://www.amaze.org.au'), '承诺金页的慈善机构可以点开官网'); }
 { const su = goal(); su.goal.start = '2026-11-12'; su.goal.days['2026-11-12'] = { done: true, doneAt: '20:10' }; ok(run(su, '2026-11-12').html.includes('撤回今天的打卡'), '当天打卡后可以撤回');
   su.goal.days['2026-11-13'] = { done: true }; ok(!run(su, '2026-11-14').html.includes('撤回今天的打卡'), '没打卡的日子不显示撤回'); }
+ok(code.includes("addEventListener('visibilitychange'") && code.includes('k!==lastDay'), '页面放过夜回来会按新的一天重算');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

@@ -967,6 +967,9 @@ function renderFinished(){
   document.getElementById('newGoal').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=newDraft();S.draft.step=1;save();render();window.scrollTo(0,0);};
 }
 
+/* 页面放在后台过了夜，回来时按新的一天重新算（不打断正在填的弹窗） */
+var lastDay=key(today());
+if(document.addEventListener)document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='visible')return;var k=key(today());if(k!==lastDay&&!document.querySelector('.sheet-bg')){lastDay=k;lateMode=false;render();}});
 if(window.addEventListener)window.addEventListener('hashchange',function(){document.querySelectorAll('.sheet-bg').forEach(function(x){x.remove();});render();window.scrollTo(0,0);});
 render();
 })();
