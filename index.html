@@ -828,6 +828,7 @@ function appealSheet(kind,dayKey){
 /* plan */
 /* 加到手机日历：生成 .ics，按本周计划的练习日和提醒时间每周重复到结营，开始时手机会提醒 */
 function icsText(g,t){
+  if(diffDays(t,fromKey(g.start))>0)t=fromKey(g.start);
   var p=planFor(g,t),BD=['SU','MO','TU','WE','TH','FR','SA'],tm=(p.time||'20:00').split(':'),first=null;
   for(var i=0;i<7;i++){var d=addDays(t,i);if(p.days.indexOf(d.getDay())>=0){first=d;break;}}
   if(!first||!p.days.length)return '';

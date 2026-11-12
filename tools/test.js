@@ -390,5 +390,6 @@ ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息�
 { const sw2 = goal(); sw2.goal.start = '2026-11-04'; sw2.ui.tab = 'plan'; sw2.goal.plans.push({ fromWeek: 1, plan: sw2.goal.plans[0].plan }); ok(run(sw2, '2026-11-09').html.includes('11月11日 起生效'), '改计划写明哪天起生效（按开始日算周，不是周一）'); }
 { const sT = goal(); sT.goal.start = '2026-11-13'; const h = run(sT, '2026-11-12').html; ok(h.includes('明天正式开始') && !h.includes('今天的任务') && run(sT,'2026-11-12').saved.goal.ledger.length === 0, '选明天开始：今天只显示准备，不算漏练');
   ok(html.includes("function startTmr(D){return D.startTmr!=null?!!D.startTmr:new Date().getHours()>=20;}"), '晚上 8 点后默认明天开始'); }
+{ const sI = goal(); sI.goal.start = '2026-11-13'; const rI = run(sI, '2026-11-12'); const tx = rI.ctx.window.__test.icsText(rI.saved.goal, new Date(2026, 10, 12)); ok(tx.includes('DTSTART:20261113T'), '明天开始的话，日历提醒从明天起'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
