@@ -9,6 +9,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: write
 
 concurrency:
   group: auto-improve
@@ -38,10 +39,24 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TOTAL_CAP_USD: "12"
+          TOTAL_CAP_USD: "11"
           RUNS_PER_DAY: "4"
-          DEADLINE: "2026-11-14T18:00:00+00:00"
+          DEADLINE: "2026-11-14T12:00:00+00:00"
           AUTO_MERGE: "1"
           TEST_CMD: "node tools/test.js"
           MODEL: "claude-opus-5-5"
         run: python .github/auto-improve/run.py
+      - name: 预算没用完就马上接着跑下一轮
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY' && gh workflow run auto-improve.yml --ref main || echo "不再接着跑"
+          import json, os, datetime as dt, sys, pathlib
+          p = pathlib.Path(".auto-improve/spend.json")
+          s = json.loads(p.read_text()) if p.exists() else {"total_usd": 0}
+          cap = float("11"); dl = dt.datetime.fromisoformat("2026-11-14T12:00:00+00:00")
+          ok = s["total_usd"] < cap - 0.5 and dt.datetime.now(dt.timezone.utc) < dl - dt.timedelta(minutes=30)
+          print("已花", s["total_usd"], "/", cap, "接着跑" if ok else "停")
+          sys.exit(0 if ok else 1)
+          PY
