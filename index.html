@@ -417,6 +417,7 @@ function bumpPlan(D){ // 上一期几乎全勤：用户点“加一点”，每�
 function appealDays(g){var seen={},out=[];g.ledger.forEach(function(l){if(l.status==='pending'&&!seen[l.day]){seen[l.day]=1;out.push(l);}});return out.sort(function(a,b){return a.day<b.day?1:-1;});}
 function shareText(g,rate,done,due,best,charged){ // 结营分享文案：只讲做到了什么，不提“赌”
   var t='我在 Enoogh 一诺完成了 4 周「'+g.name+'」：完成率 '+rate+'%（'+done+'/'+due+' 天），最长连续 '+best+' 天。';
+  if(g.pte&&g.pte.result)t+='PTE 最低单项考到 '+g.pte.result+(g.pte.result>=g.pte.target?'，达到目标 '+g.pte.target+'！':'。');
   if(charged>0)t+='漏掉的日子，承诺金 '+money(charged)+' 已全部捐给 '+charityName(g)+'。';
   return t+'想要有人督促你每天做到？enoogh.com';
 }
