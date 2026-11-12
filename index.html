@@ -466,14 +466,14 @@ function stepPlan(D){
     '<div class="field" style="margin:0"><label class="f" for="pWeak">最弱的单项</label><select class="in" id="pWeak">'+Object.keys(PTE_TEMPLATES).map(function(k){return '<option value="'+k+'" '+(D.pte.weak===k?'selected':'')+'>'+PTE_TEMPLATES[k].label+'</option>';}).join('')+'</select></div>'+
     '<p class="small muted" style="margin:10px 0 0">改了分数或弱项，下面的任务会自动重新生成。</p></div>';
   } else {
-    h+='<div class="card"><div class="field" style="margin:0"><label class="f" for="gName">目标名称</label><input class="in" id="gName" placeholder="比如：每天健身、雅思口语" value="'+esc(D.goalName)+'"></div></div>';
+    h+='<div class="card"><div class="field" style="margin:0"><label class="f" for="gName">目标名称</label><input class="in" id="gName" maxlength="30" placeholder="比如：每天健身、雅思口语" value="'+esc(D.goalName)+'"></div></div>';
   }
   h+='<div class="card"><h3>哪几天做</h3><div class="wkpick">'+[1,2,3,4,5,6,0].map(function(d){return '<button class="btn small '+(D.days.indexOf(d)>=0?'on':'ghost')+'" data-day="'+d+'" aria-pressed="'+(D.days.indexOf(d)>=0)+'" aria-label="'+WD[d]+'">'+WD[d].slice(1)+'</button>';}).join('')+'</div>'+
   '<div class="field" style="margin:0"><label class="f" for="pTime">每天提醒时间</label>'+timeSel('pTime',D.time)+'</div></div>';
   h+='<div class="card"><div class="row between"><h3 style="margin:0">每次要做</h3><button class="btn small ghost" id="addTask">＋ 加一项</button></div><div id="taskList">'+
   D.tasks.map(function(t,i){
     var del='<button class="btn small ghost" data-tdel="'+i+'" aria-label="删除这项">✕</button>';
-    if(!t.code)return '<div class="task ctask"><div class="row" style="gap:8px"><input class="in" data-tname="'+i+'" placeholder="任务名称，比如：跑步" value="'+esc(t.name)+'" style="min-height:42px;flex:1;min-width:0">'+del+'</div>'+
+    if(!t.code)return '<div class="task ctask"><div class="row" style="gap:8px"><input class="in" data-tname="'+i+'" maxlength="40" placeholder="任务名称，比如：跑步" value="'+esc(t.name)+'" style="min-height:42px;flex:1;min-width:0">'+del+'</div>'+
       '<div class="cq"><span>每次</span><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><input class="in unit" data-tunit="'+i+'" value="'+esc(t.unit)+'" placeholder="次" maxlength="4" aria-label="单位，比如次、公里、页"><span class="sep">·</span><span>约</span><input class="in" data-tmins="'+i+'" type="number" inputmode="numeric" value="'+(t.mins||0)+'" aria-label="大约几分钟"><span>分钟</span></div></div>';
     return '<div class="task"><div class="nm"><div class="t">'+esc(t.name)+'</div></div>'+
     '<div class="qty"><input class="in" data-tqty="'+i+'" type="number" inputmode="numeric" min="1" value="'+t.qty+'" aria-label="数量"><span class="small muted">'+esc(t.unit)+'</span></div>'+del+'</div>';
