@@ -819,7 +819,7 @@ function viewPlan(){
   return h;
 }
 function planTable(p){
-  return '<div class="small muted" style="margin:6px 0">'+daysText(p.days)+' · '+esc(p.time)+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
+  return '<div class="small muted" style="margin:6px 0">'+daysText(p.days)+' · '+esc(p.time)+' 提醒'+(estMinutes(p.tasks)>0?' · 约 '+estMinutes(p.tasks)+' 分钟/天':'')+'</div>'+
   p.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
@@ -830,17 +830,20 @@ function bindPlan(){
     function body(){
       return '<h2>修改下周计划</h2><p class="small muted">从下周（第 '+(w+2)+' 周）开始生效。</p>'+
       base.tasks.map(function(x,i){return '<div class="task"><div class="nm"><div class="t">'+esc(x.name)+'</div></div><div class="qty"><input class="in" data-eq="'+i+'" type="number" inputmode="numeric" min="0" value="'+x.qty+'" aria-label="'+esc(x.name)+' 数量"><span class="small muted">'+esc(x.unit)+'</span></div></div>';}).join('')+
-      '<p class="small muted">数量填 0 = 下周去掉这一项。</p><div class="field"><label class="f" for="eTime">提醒时间</label>'+timeSel('eTime',base.time)+'</div>'+
+      '<p class="small muted">数量填 0 = 下周去掉这一项。</p><div class="field"><label class="f">哪几天做</label><div class="wkpick">'+[1,2,3,4,5,6,0].map(function(d){var on=base.days.indexOf(d)>=0;return '<button type="button" class="btn small '+(on?'on':'ghost')+'" data-eday="'+d+'" aria-pressed="'+on+'" aria-label="'+WD[d]+'">'+WD[d].slice(1)+'</button>';}).join('')+'</div></div><div class="field"><label class="f" for="eTime">提醒时间</label>'+timeSel('eTime',base.time)+'</div>'+
       '<div id="eWarn"></div><div class="row"><button class="btn ghost" data-close>取消</button><button class="btn primary" style="flex:1" id="eSave">保存</button></div>';
     }
     sheet(body(),function(el,close){
       el.querySelector('[data-close]').onclick=close;
-      function warn(){var m=estMinutes(base.tasks.filter(function(x){return x.qty>0;}));el.querySelector('#eWarn').innerHTML=m>60?'<div class="card warnc small">估计每天约 '+m+' 分钟，可能太满了。</div>':'<p class="small muted">估计每天约 '+m+' 分钟</p>';}
+      function warn(){var m=estMinutes(base.tasks.filter(function(x){return x.qty>0;}));el.querySelector('#eWarn').innerHTML=(m>60?'<div class="card warnc small">估计每天约 '+m+' 分钟，可能太满了。</div>':m>0?'<p class="small muted">估计每天约 '+m+' 分钟</p>':'')+'<p class="small muted">每周练 '+base.days.length+' 天</p>';}
       warn();
+      el.querySelectorAll('[data-eday]').forEach(function(b){b.onclick=function(){var d=+b.getAttribute('data-eday'),i=base.days.indexOf(d);if(i>=0)base.days.splice(i,1);else base.days.push(d);var on=i<0;b.className='btn small '+(on?'on':'ghost');b.setAttribute('aria-pressed',on);warn();};});
       el.querySelectorAll('[data-eq]').forEach(function(inp){inp.oninput=function(){base.tasks[+inp.getAttribute('data-eq')].qty=Math.max(0,+inp.value||0);warn();};});
       el.querySelector('#eSave').onclick=function(){
         base.time=readTime(el,'eTime')||base.time; base.tasks=base.tasks.filter(function(x){return x.qty>0;});
         if(!base.tasks.length){toast('至少留一项任务');return;}
+        if(!base.days.length){toast('至少选一天');return;}
+        base.days.sort(function(a,b){return ((a+6)%7)-((b+6)%7);});
         g.plans=g.plans.filter(function(p){return p.fromWeek<=w;}); g.plans.push({fromWeek:w+1,plan:base}); save(); close(); render(); toast('已保存，下周生效');
       };
     });
