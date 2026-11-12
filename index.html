@@ -756,7 +756,7 @@ function startRec(){
   var box=document.getElementById('recBox');
   if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder)){toast('这里不能直接录音，请用“上传录音文件”');return;}
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-    var chunks=[],mr=new MediaRecorder(stream),left=30;
+    var chunks=[],mr,left=30;try{mr=new MediaRecorder(stream,{audioBitsPerSecond:24000});}catch(e){mr=new MediaRecorder(stream);}
     mr.ondataavailable=function(e){if(e.data.size)chunks.push(e.data);};
     mr.onstop=function(){stream.getTracks().forEach(function(t){t.stop();});clearInterval(recState&&recState.iv);recState=null;var b=new Blob(chunks,{type:mr.mimeType||'audio/webm'});var fr=new FileReader();fr.onload=function(){var r=rec(S.goal,key(today()));r.audio=fr.result;save();render();toast('录好了');};fr.readAsDataURL(b);};
     mr.start();
