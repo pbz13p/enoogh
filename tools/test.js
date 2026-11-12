@@ -325,5 +325,6 @@ ok(/data-next\]','click',function\(\)\{clearToasts\(\)/.test(code), '换步骤�
 ok(code.includes('第二天中午 12 点前要交'), '早睡/戒奶茶的确认条款写明次日中午截止');
 ok(html.includes('og:image') && fs.existsSync(path.join(__dirname,'..','icons','og.jpg')), '分享链接有预览图');
 ok(fs.existsSync(path.join(__dirname,'..','sw.js')) && code.includes("location.protocol==='https:'"), '正式网站离线也能打开');
+ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes('id=\"newGoal\"'), '结营页：80–94% 不说“每天都在做”，并可换一个目标');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

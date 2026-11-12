@@ -893,7 +893,7 @@ function renderFinished(){
   for(var i=0;i<CYCLE_DAYS;i++){var st=dayStatus(g,addDays(start,i));if(st==='done'){done++;due++;run++;if(run>best)best=run;}if(st==='miss'){due++;run=0;}}
   var rate=due?Math.round(done/due*100):100, p=planFor(g,cycleEnd(g)), nd=p.days.length;
   var title=rate===100?'全勤！说到做到 🎉':rate>=80?'做到了 '+rate+'%，很稳 👏':rate>=50?'坚持了 '+done+' 天，比开始时强':'这一期没跑顺，没关系';
-  var lead=rate>=80?'这 4 周你真的每天都在做。习惯已经开始长出来了。':rate>=50?'一半以上的日子你都做到了。下一期把计划调轻一点，会更顺。':'计划可能定得太满了。这不是你不行，是计划需要更贴合你的生活。';
+  var lead=rate>=95?'这 4 周你真的每天都在做。习惯已经开始长出来了。':rate>=80?'大多数日子你都做到了，偶尔漏一两天很正常。习惯已经开始长出来了。':rate>=50?'一半以上的日子你都做到了。下一期把计划调轻一点，会更顺。':'计划可能定得太满了。这不是你不行，是计划需要更贴合你的生活。';
   var tip=rate>=95?'<div class="card tint small"><b>下一期建议</b><div style="margin-top:4px">你已经很稳了。下一期可以每项加一点（约 20%），再开一期时一键就能加。</div></div>':rate>=80?'':'<div class="card tint small"><b>下一期建议</b><div style="margin-top:4px">'+(nd>3?'把每周练习从 '+nd+' 天减到 '+Math.max(3,nd-2)+' 天，':'')+'把每天的任务量减半。小一点、但每天都做到，比大计划更有用。</div></div>';
   $app.innerHTML=top()+'<div class="hero-ic"'+(rate>=80?'':' style="background:var(--sky)"')+'>'+LOGO_W+'</div><h1 style="margin-bottom:6px">'+title+'</h1>'+
   '<p class="muted" style="margin:0 0 14px">'+lead+'</p>'+
@@ -902,7 +902,8 @@ function renderFinished(){
   tip+
   (g.type==='pte'?'<div class="card tint small">考完记得告诉我们分数。你的提分故事会帮到下一个人。</div>':'')+
   '<div class="row" style="margin-bottom:10px"><button class="btn block" id="shareImg" style="flex:1">生成成绩图片</button><button class="btn ghost" id="shareRes" style="flex:1">复制文字</button></div>'+
-  '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>';
+  '<button class="btn primary block" id="again">'+(rate>=80?'用同样的计划再开一期':'按建议调轻，再开一期')+'</button>'+
+  '<button class="btn ghost block" id="newGoal" style="margin-top:10px">换一个目标</button>';
   document.getElementById('tabs').classList.add('hide'); bindTop();
   document.getElementById('shareRes').onclick=function(){var tx=shareText(g,rate,done,due,best,T.charged),b=this;
     function okMsg(){b.textContent='已复制，去发给朋友吧 ✓';setTimeout(function(){b.textContent='复制文字';},2500);}
@@ -912,6 +913,7 @@ function renderFinished(){
   document.getElementById('shareImg').onclick=function(){var cv=shareCard(g,rate,done,due,best,T.charged);if(!cv||!cv.toDataURL){toast('这个浏览器不支持生成图片，请用“复制文字”');return;}var url=cv.toDataURL('image/png');
     sheet('<h2 style="margin-top:0">成绩图片</h2><img src="'+url+'" alt="成绩图片" style="width:100%;border-radius:14px;border:1px solid var(--line)"><p class="small muted" style="text-align:center;margin:10px 0">手机上长按图片即可保存或发给朋友</p><a class="btn primary block" download="enoogh-成绩.png" href="'+url+'">保存图片</a>');};
   document.getElementById('again').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=nextDraft(old,rate);save();render();window.scrollTo(0,0);};
+  document.getElementById('newGoal').onclick=function(){var old=S.goal;S.history.push({name:old.name,rate:rate,charged:T.charged,end:old.finished});S.goal=null;S.draft=newDraft();S.draft.step=1;save();render();window.scrollTo(0,0);};
 }
 
 if(window.addEventListener)window.addEventListener('hashchange',function(){document.querySelectorAll('.sheet-bg').forEach(function(x){x.remove();});render();window.scrollTo(0,0);});
