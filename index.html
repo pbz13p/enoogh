@@ -642,7 +642,7 @@ function weekStrip(g){
   for(var i=0;i<7;i++){
     var d=addDays(mon,i), st=dayStatus(g,d), cls={done:'done',miss:'miss',excused:'excused',rest:'rest',out:'out'}[st]||'';
     var icon={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''}[st];
-    h+='<div class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:'不在本期'}[st]||'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></div>';
+    var tap=st==='done'||st==='miss'||st==='excused';h+='<'+(tap?'button type="button" data-cal="'+key(d)+'"':'div')+' class="day '+cls+(diffDays(d,t)===0?' today':'')+'"'+(tap?' style="border:0;font:inherit;width:100%"':'')+' aria-label="'+WD[d.getDay()]+' '+({done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:'不在本期'}[st]||'')+(tap?'，点开看详情':'')+'">'+WD[d.getDay()].slice(1)+'<b>'+icon+'</b></'+(tap?'button':'div')+'>';
   }
   return h+'</div>';
 }
@@ -789,6 +789,7 @@ function bindToday(){
   on('#calX','click',function(){S.ui.calTip=1;save();render();});
   on('#goPlan','click',function(){S.ui.tab='plan';save();render();window.scrollTo(0,0);});
   on('#a2hsGo','click',function(){var e=installEvt;if(!e)return;installEvt=null;e.prompt();if(e.userChoice)e.userChoice.then(function(r){if(r&&r.outcome==='accepted'){S.ui.a2hs=1;save();}render();});});
+  on('[data-cal]','click',function(){showDay(S.goal,this.getAttribute('data-cal'));});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});
@@ -876,7 +877,7 @@ function showDay(g,k){var r=g.days[k]||{},d=fromKey(k),st=dayStatus(g,d),led=g.l
 function cycleCal(g){var st0=fromKey(g.start),t=today(),ic={done:'✓',miss:'✕',excused:'假',rest:'休',todo:'·',late:'?',future:'',out:''},lb={done:'完成',miss:'漏练',excused:'已申诉',rest:'休息',todo:'今天',late:'待补打卡',future:'',out:''};
   var head='<div class="week cal-h">'+[0,1,2,3,4,5,6].map(function(i){return '<div class="small muted" style="text-align:center">'+WD[addDays(st0,i).getDay()].slice(1)+'</div>';}).join('')+'</div>';
   var h='';for(var w=0;w<4;w++){h+='<div class="week">';for(var i=0;i<7;i++){var d=addDays(st0,w*7+i),st=dayStatus(g,d),cls={done:'done',miss:'miss',excused:'excused',rest:'rest'}[st]||'';
-    var tap=st==='done'||st==='miss'||st==='excused';h+='<'+(tap?'button type="button" data-cal="'+key(d)+'"':'div')+' class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+fmt(d)+' '+(lb[st]||'')+(tap?'，点开看详情':'')+'" style="border:0;font:inherit;width:100%"><span style="font-size:11px">'+(d.getMonth()+1)+'/'+d.getDate()+'</span><b>'+(ic[st]||'&nbsp;')+'</b></'+(tap?'button':'div')+'>';}h+='</div>';}
+    var tap=st==='done'||st==='miss'||st==='excused';h+='<'+(tap?'button type="button" data-cal="'+key(d)+'"':'div')+' class="day '+cls+(diffDays(d,t)===0?' today':'')+'" aria-label="'+fmt(d)+' '+(lb[st]||'')+(tap?'，点开看详情':'')+'"'+(tap?' style="border:0;font:inherit;width:100%"':'')+'><span style="font-size:11px">'+(d.getMonth()+1)+'/'+d.getDate()+'</span><b>'+(ic[st]||'&nbsp;')+'</b></'+(tap?'button':'div')+'>';}h+='</div>';}
   return '<div class="card"><div class="row between"><h2 style="margin:0">本期日历</h2><span class="chip grey">'+fmt(st0)+' – '+fmt(cycleEnd(g))+'</span></div>'+head+h+'</div>';}
 function addToCalendar(){var txt=icsText(S.goal,today());if(!txt){toast('本周没有练习日');return;}
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='enoogh-提醒.ics';document.body.appendChild(a);a.click();a.remove();S.ui.calDone=1;save();if(S.ui.tab==='plan')render();toast('打开下载的文件，选「添加到日历」');}
