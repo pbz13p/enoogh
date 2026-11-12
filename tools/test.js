@@ -343,5 +343,8 @@ ok(html.includes("rate>=95?'这 4 周你真的每天都在做") && html.includes
   ok(V(goal()) && V(Object.assign(goal(), { goal: null })) && !V({ v: 2 }) && !V({ v: 1, ui: {}, history: [], goal: { start: 1 } }) && !V(null), '备份文件校验：一诺的能导入，别的拒绝');
   s = goal(); s.ui.tab = 'money'; const rm = run(s, '2026-11-12'); ok(rm.html.includes('导出备份') && rm.html.includes('从备份恢复'), '承诺金页有备份');
   ok(run(null, '2026-11-12').html.includes('bkInW'), '欢迎页可从备份恢复'); }
+{ const X = '<img src=x onerror=1>'; const sx = goal(); sx.goal.name = X; sx.goal.plans[0].plan.time = X; sx.goal.plans[0].plan.tasks[0].name = X;
+  let bad = false; ['today', 'plan', 'money', 'learn'].forEach(t => { sx.ui.tab = t; if (run(sx, '2026-11-12').html.includes('<img src=x')) bad = true; });
+  ok(!bad, '目标名、任务名、提醒时间都转义，不能注入代码'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

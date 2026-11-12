@@ -490,7 +490,7 @@ function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
   '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+' '+esc(t.unit);}).join('<br>')+'</b></div>'+
-  '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+D.time+'</b></div>'+
+  '<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+esc(D.time)+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
@@ -698,7 +698,7 @@ function viewToday(){
     h+='<div class="card"><h2>今天已报备</h2><p class="muted" style="margin:0">原因：'+esc(r.reason||'')+'。今天不扣钱。</p></div>';
   } else {
     var all=p.tasks.every(function(x,i){return r.tasks&&r.tasks[i];}), proofOk=(r.photos&&r.photos.length)&&(g.type!=='pte'||r.audio);
-    h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':p.time+' 提醒 · '+(GRACE_HOUR[g.tpl]?'次日 12:00 截止':'23:59 截止'))+'</span></div><div style="margin-top:6px">'+
+    h+='<div class="card"><div class="row between"><h2 style="margin:0">'+(isLate?'昨天的任务':'今天的任务')+'</h2><span class="chip sky">'+(isLate?'今天 12:00 截止':esc(p.time)+' 提醒 · '+(GRACE_HOUR[g.tpl]?'次日 12:00 截止':'23:59 截止'))+'</span></div><div style="margin-top:6px">'+
     backNote(g,t,p,r)+p.tasks.map(function(x,i){var on=r.tasks&&r.tasks[i];return '<div class="task"><button class="check '+(on?'on':'')+'" data-tick="'+i+'" role="checkbox" aria-checked="'+!!on+'" aria-label="完成 '+esc(x.name)+'">'+TICK+'</button><div class="nm"><div class="t">'+esc(x.name)+'</div><div class="d">'+x.qty+' '+esc(x.unit)+'</div></div></div>';}).join('')+'</div></div>';
     h+='<div class="card tint"><div class="tip"><div class="ic">💡</div><div class="small">'+dailyTip(g,t)+'</div></div></div>';
     h+='<div class="card"><h2>交打卡证据</h2><p class="small muted">'+(g.type==='pte'?'① 练习 App 当天记录截图（能看到日期和题量）② 一段 30 秒左右的口语录音。':'一张能证明完成的照片或截图。')+'</p>'+
@@ -813,7 +813,7 @@ function viewPlan(){
   return h;
 }
 function planTable(p){
-  return '<div class="small muted" style="margin:6px 0">'+daysText(p.days)+' · '+p.time+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
+  return '<div class="small muted" style="margin:6px 0">'+daysText(p.days)+' · '+esc(p.time)+' 提醒 · 约 '+estMinutes(p.tasks)+' 分钟/天</div>'+
   p.tasks.map(function(x){return '<div class="kv"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('');
 }
 function bindPlan(){
