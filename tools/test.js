@@ -323,5 +323,7 @@ ok(/b\.onclick=function\(\)\{document\.querySelectorAll\('\.toast'\)/.test(code)
   ok(code.includes("lateMode=false;save();render();toast(wasLate?") , '补打卡交完回到今天'); }
 ok(/data-next\]','click',function\(\)\{clearToasts\(\)/.test(code), '换步骤时收起提示条，不挡确认项');
 ok(code.includes('第二天中午 12 点前要交'), '早睡/戒奶茶的确认条款写明次日中午截止');
+ok(html.includes('og:image') && fs.existsSync(path.join(__dirname,'..','icons','og.jpg')), '分享链接有预览图');
+ok(fs.existsSync(path.join(__dirname,'..','sw.js')) && code.includes("location.protocol==='https:'"), '正式网站离线也能打开');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);

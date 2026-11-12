@@ -6,6 +6,15 @@
 <title>Enoogh 一诺 · 说到做到</title>
 <meta name="description" content="Enoogh 一诺：定一个计划，交一笔承诺金。做到了钱一分不少，做不到扣下的钱 100% 捐给慈善。">
 <meta name="theme-color" content="#0E9C8C">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Enoogh 一诺">
+<meta property="og:title" content="Enoogh 一诺 · 说到做到。做不到，就捐出去。">
+<meta property="og:description" content="定一个计划，交一笔承诺金。做到了一分不少；漏练扣下的钱 100% 捐给慈善，平台只收服务费。">
+<meta property="og:url" content="https://enoogh.com/">
+<meta property="og:image" content="https://enoogh.com/icons/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -908,6 +917,9 @@ function renderFinished(){
 if(window.addEventListener)window.addEventListener('hashchange',function(){document.querySelectorAll('.sheet-bg').forEach(function(x){x.remove();});render();window.scrollTo(0,0);});
 render();
 })();
+
+/* 离线可用：只在 https 正式网站上注册 */
+if(typeof navigator!=='undefined'&&navigator.serviceWorker&&typeof location!=='undefined'&&location.protocol==='https:'){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}}
 </script>
 </body>
 </html>
