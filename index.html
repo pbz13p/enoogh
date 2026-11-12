@@ -344,10 +344,15 @@ if(document.addEventListener)document.addEventListener('focusin',function(e){var
 function sheet(html,onMount){
   document.querySelectorAll('.toast').forEach(function(x){x.remove();});
   var bg=document.createElement('div');bg.className='sheet-bg';
-  bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true">'+html+'</div>';
+  bg.innerHTML='<div class="sheet" role="dialog" aria-modal="true" tabindex="-1" style="outline:none">'+html+'</div>';
   bg.addEventListener('click',function(e){if(e.target===bg)close();});
-  function close(){bg.remove();}
-  document.body.appendChild(bg); if(onMount)onMount(bg.firstChild,close); return close;
+  var prev=document.activeElement;
+  function onKey(e){if(e.key==='Escape')close();}
+  function close(){bg.remove();document.removeEventListener('keydown',onKey);if(prev&&prev.focus)try{prev.focus();}catch(e){}}
+  document.addEventListener('keydown',onKey);
+  document.body.appendChild(bg); if(onMount)onMount(bg.firstChild,close);
+  if(bg.firstChild&&bg.firstChild.focus)try{bg.firstChild.focus({preventScroll:true});}catch(e){}
+  return close;
 }
 /* 提醒时间：自己画 24 小时制的“时 : 分”两个下拉，避免英文系统显示 09:30 PM */
 function pad2(n){return (n<10?'0':'')+n;}
