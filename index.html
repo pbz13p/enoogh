@@ -67,6 +67,7 @@ p{margin:0 0 10px;line-height:1.6}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .btn{appearance:none;border:0;border-radius:14px;min-height:48px;padding:12px 18px;font-weight:700;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn.primary{background:#0A8274;color:#fff}
+.btn.on{background:#0A8274;color:#fff;border:1px solid #0A8274;font-weight:700}
 .btn.primary:active{background:var(--brand-ink)}
 .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
 .btn.soft{background:var(--brand-tint);color:var(--brand-ink)}
@@ -377,6 +378,7 @@ function bindTop(){
 }
 
 /* ---------- onboarding ---------- */
+function startTmr(D){return D.startTmr!=null?!!D.startTmr:new Date().getHours()>=20;}
 function planMissing(D){var m=[];
   if(D.type!=='pte'&&!(D.goalName||'').trim())m.push('目标名称');
   if(D.type==='pte'&&D.pte){var pn=+D.pte.now,pt=+D.pte.target;
@@ -508,7 +510,7 @@ function stepConfirm(D){
   var fee=D.type==='pte'?49:29;
   var h='<h1>最后确认</h1><div class="card"><div class="kv"><span>目标</span><b>'+esc(D.type==='pte'?'PTE 提分 '+D.pte.now+' → '+D.pte.target:D.goalName)+'</b></div>'+
   '<div class="kv"><span>每次要做</span><b>'+D.tasks.map(function(t){return esc(t.name)+' '+t.qty+' '+esc(t.unit);}).join('<br>')+'</b></div>'+
-  '<div class="kv"><span>时间</span><b>今天 '+fmt(today())+' – '+fmt(addDays(today(),CYCLE_DAYS-1))+'（28 天）</b></div>'+'<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+esc(D.time)+'</b></div>'+
+  '<div class="kv"><span>时间</span><b>'+(startTmr(D)?'明天 ':'今天 ')+fmt(addDays(today(),startTmr(D)?1:0))+' – '+fmt(addDays(today(),CYCLE_DAYS-1+(startTmr(D)?1:0)))+'（28 天）</b></div>'+'<div class="kv"><span>日子</span><b>'+daysText(D.days)+' · '+esc(D.time)+'</b></div>'+
   '<div class="kv"><span>承诺金</span><b>'+money(D.stake)+' · 漏一天扣 '+money(D.stake/20)+'</b></div>'+
   '<div class="kv"><span>模式</span><b>'+(D.mode==='hard'?'硬核（不能申诉）':'普通（可申诉 2 次）')+'</b></div>'+
   '<div class="kv"><span>付款</span><b>'+(D.pay==='card'?'绑卡，漏练才扣':'预付承诺金')+'</b></div>'+
@@ -516,7 +518,8 @@ function stepConfirm(D){
   h+='<div class="card"><h3>请逐条确认</h3>'+RULES.map(function(r,i){if(i===3&&GRACE_HOUR[D.tpl])r='我理解每个练习日的卡最晚第二天中午 12 点前要交，没交就算漏练。';return '<div class="task agree" data-agree="'+i+'"><button class="check '+(D.agree[i]?'on':'')+'" role="checkbox" aria-checked="'+!!D.agree[i]+'" aria-label="'+esc(r)+'">'+TICK+'</button><div class="nm small">'+esc(r)+'</div></div>';}).join('')+'</div>';
   var all=RULES.every(function(r,i){return D.agree[i];});
   h+='<div class="card tint small">演示版：点“开始”不会扣任何钱。正式版会在这一步'+(D.pay==='card'?'绑定银行卡并收取服务费':'收取服务费和预付承诺金')+'。</div>';
-  h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" id="startGoal" '+(all?'':'disabled')+'>开始第一天</button></div>';
+  h+='<div class="card"><h3 style="margin:0 0 8px">从哪天开始</h3><div class="row"><button type="button" class="btn small '+(startTmr(D)?'ghost':'on')+'" data-st="0" style="flex:1" aria-pressed="'+!startTmr(D)+'">今天就开始</button><button type="button" class="btn small '+(startTmr(D)?'on':'ghost')+'" data-st="1" style="flex:1" aria-pressed="'+startTmr(D)+'">明天开始</button></div>'+(new Date().getHours()>=20?'<p class="small muted" style="margin:8px 0 0">已经晚上了，今天开始的话第一天只剩几个小时，建议明天开始。</p>':'')+'</div>';
+  h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" id="startGoal" '+(all?'':'disabled')+'>'+(startTmr(D)?'确定，明天开始':'开始第一天')+'</button></div>';
   return h;
 }
 function bindOnboard(D){
@@ -551,13 +554,14 @@ function bindOnboard(D){
   on('[data-mode]','click',function(){D.mode=this.getAttribute('data-mode');save();render();});
   on('[data-pay]','click',function(){D.pay=this.getAttribute('data-pay');save();render();});
   on('[data-charity]','click',function(){D.charity=this.getAttribute('data-charity');save();render();});
+  on('[data-st]','click',function(){D.startTmr=this.getAttribute('data-st')==='1';save();render();});
   on('[data-agree]','click',function(){var i=this.getAttribute('data-agree');D.agree[i]=!D.agree[i];save();render();});
   on('#startGoal','click',function(){
     var plan={days:D.days.slice(),time:D.time,tasks:D.tasks.map(function(t){return {code:t.code||null,name:t.name,qty:t.qty,unit:t.unit,mins:t.mins||0};})};
     S.goal={id:Date.now(),type:D.type,name:D.type==='pte'?'PTE 提分':D.goalName.trim(),pte:D.type==='pte'?JSON.parse(JSON.stringify(D.pte)):null,tpl:D.type==='custom'&&D.tpl||null,
-      start:key(today()),plans:[{fromWeek:0,plan:plan}],stake:D.stake,mode:D.mode,pay:D.pay,charity:D.charity,fee:D.type==='pte'?49:29,
+      start:key(addDays(today(),startTmr(D)?1:0)),plans:[{fromWeek:0,plan:plan}],stake:D.stake,mode:D.mode,pay:D.pay,charity:D.charity,fee:D.type==='pte'?49:29,
       days:{},ledger:[],appealsUsed:0,finished:null};
-    S.draft=null;S.ui.tab='today';save();render();window.scrollTo(0,0);toast('开始了！今天就是第一天');
+    var tm=startTmr(D);S.draft=null;S.ui.tab='today';save();render();window.scrollTo(0,0);toast(tm?'定好了！明天是第一天':'开始了！今天就是第一天');
   });
 }
 function pickPteTask(cb){
@@ -691,7 +695,7 @@ function viewToday(){
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
   var tn=(!cs.due&&p&&p.tasks)?p.tasks.length:0, tdid=tn?p.tasks.filter(function(x,i){return r.tasks&&r.tasks[i];}).length:0, ringPct=cs.due?rate:(tn?Math.round(tdid/tn*100):0);
   var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(ringPct>0?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C*ringPct/100+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':tn?'<b>'+tdid+'/'+tn+'</b><span>今天任务</span>':'<b>—</b><span>完成率</span>')+'</div></div>'+
-  '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+Math.min(cs.day,CYCLE_DAYS)+' / '+CYCLE_DAYS+' 天</div>'+
+  '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+Math.max(1,Math.min(cs.day,CYCLE_DAYS))+' / '+CYCLE_DAYS+' 天</div>'+
   '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?(function(){var n=diffDays(t,fromKey(g.pte.exam));return '<div class="small muted">'+(n>0?'距离考试 '+n+' 天':n===0?'今天考试，加油！':'考试已过，计划照常到结营')+'</div>';})():'')+'</div></div>'+weekStrip(g)+progressLine(g)+'</div>';
   var justCard='';
   var just=g.ledger.filter(function(l){if(l.status!=='charged'||!l.chargedOn)return false;var a=diffDays(fromKey(l.chargedOn),t);return a>=0&&a<7;});
@@ -709,6 +713,11 @@ function viewToday(){
     h='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><div class="row between"><b>正在补打卡：'+fmt(t)+'（昨天）</b><button class="btn small ghost" id="lateBack">回到今天</button></div><p class="small" style="margin:6px 0 0">中午 12 点前交上就不算漏练。</p></div>';
   } else if(dayStatus(g,yd)==='late'){
     h+='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><b>昨天的打卡还没交</b><p class="small" style="margin:6px 0 10px">「'+esc(g.name)+'」要到今天早上才知道有没有做到，所以给你留到中午 12 点补打卡。过了 12 点就算漏练。</p><button class="btn small primary" id="lateGo">补交昨天的打卡</button></div>';
+  }
+  if(st==='out'&&diffDays(t,fromKey(g.start))>0){
+    var p0=planFor(g,fromKey(g.start));
+    h+='<div class="card tint"><h2>'+(diffDays(t,fromKey(g.start))===1?'明天':fmtLong(fromKey(g.start))+' ')+'正式开始</h2><p class="muted" style="margin:0 0 10px">今天不用打卡，先把要用的东西准备好。</p>'+p0.tasks.map(function(x){return '<div class="kv wrapk"><span>'+esc(x.name)+'</span><b>'+x.qty+' '+esc(x.unit)+'</b></div>';}).join('')+'</div>';
+    return h+pendCard+justCard;
   }
   if(st==='out'){
     h+='<div class="card tint"><h2>这一期的 28 天到了</h2><p class="muted" style="margin:0">补交完最后一天的打卡，中午 12 点后自动结营，出这一期的成绩。</p></div>';
