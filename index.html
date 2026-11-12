@@ -715,7 +715,7 @@ function viewToday(){
     return h+pendCard+justCard;
   }
   if(st==='rest'){
-    h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
+    h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(t.getDay()===0?'<button class="btn small primary" id="goPlan" style="margin-top:12px">去看本周复盘</button>':'')+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';
   } else if(st==='done'){
     var sk=doneStreak(g,t),np=nextPractice(g,t);
     h+='<div class="card tint"><div class="row between" style="align-items:flex-start"><div style="flex:1"><h2 style="margin:0 0 6px">今天完成了 ✓</h2><p class="small muted" style="margin:0;line-height:1.6">打卡时间 '+esc(r.doneAt||'')+(np?'<br>'+np.label+' '+esc(np.time)+' 提醒你':'')+'</p></div>'+
@@ -757,6 +757,7 @@ function bindToday(){
   on('#undoDone','click',function(e){e.preventDefault();r.done=false;delete r.doneAt;save();render();toast('已撤回，做完再打卡');});
   on('#calGo','click',function(){addToCalendar();render();});
   on('#calX','click',function(){S.ui.calTip=1;save();render();});
+  on('#goPlan','click',function(){S.ui.tab='plan';save();render();window.scrollTo(0,0);});
   on('#a2hsX','click',function(){S.ui.a2hs=1;save();render();});
   on('#lateGo','click',function(){lateMode=true;render();window.scrollTo(0,0);});
   on('#lateBack','click',function(){lateMode=false;render();});

@@ -386,5 +386,6 @@ ok(html.includes("'你的计划本期 '+n+' 个练习日，全漏最多扣 <b>'"
 { const sk = goal(); sk.goal.start = '2026-11-12'; ok(run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '第一周今天页提示加到日历'); sk.ui.calDone = 1; ok(!run(sk, '2026-11-12').html.includes('让手机每天提醒你'), '加过日历就不再提示'); }
 ok(code.includes("id=\\\"eAdd\\\"") || code.includes('id="eAdd"') || code.includes("id=\"eAdd\""), '下周计划可以加新任务（非 PTE）');
 ok(code.includes("7:'连续 7 天！一整周说到做到"), '连续 3/7/14/21 天打卡有庆祝提示');
+ok(run(goal(), '2026-11-15').html.includes('去看本周复盘'), '周日休息日有按钮直接去复盘');
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
