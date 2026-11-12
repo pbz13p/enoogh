@@ -41,22 +41,50 @@ def sh(*args, check=True):
 
 
 def prepare_branch():
-    """在 auto-improve 分支上继续，并合并最新的 main；合并冲突就从 main 重新开一个分支。"""
-    global BRANCH
+    """每次都从最新的 main 开始（督导 11/12 改：以前分支和 main 冲突时会另开分支，
+    改动卡在分支上没合进网站，推送还会被拒、整轮白干）。花费和记录从旧分支带过来。"""
     sh("git", "config", "user.name", "auto-improve-bot")
     sh("git", "config", "user.email", "auto-improve-bot@users.noreply.github.com")
+    sh("git", "fetch", "origin", "main")
+    sh("git", "checkout", "-B", BRANCH, "origin/main")
     if sh("git", "ls-remote", "--exit-code", "--heads", "origin", BRANCH, check=False).returncode == 0:
         sh("git", "fetch", "origin", BRANCH)
-        sh("git", "checkout", "-B", BRANCH, f"origin/{BRANCH}")
+        for f in (".auto-improve/spend.json", ".auto-improve/LOG.md"):
+            old = sh("git", "show", f"origin/{BRANCH}:{f}", check=False).stdout
+            cur = Path(f).read_text() if Path(f).exists() else ""
+            if len(old) > len(cur):
+                Path(f).parent.mkdir(exist_ok=True)
+                Path(f).write_text(old)
+        left = sh("git", "rev-list", "--count", f"origin/main..origin/{BRANCH}", "--", ".", ":!.auto-improve", check=False).stdout.strip()
+        if left and left != "0":
+            print(f"注意：旧分支上有 {left} 个提交没合进 main（测试没过或冲突），这次从 main 重新开始", flush=True)
+
+
+def ship_to_main():
+    """把这次的改动合进最新的 main：先合并别人刚推的 main，再跑测试，再推。返回 (成功?, 说明)。"""
+    for attempt in range(3):
+        sh("git", "fetch", "origin", "main")
         if sh("git", "merge", "--no-edit", "origin/main", check=False).returncode != 0:
-            sh("git", "merge", "--abort", check=False)
-            old = BRANCH
-            BRANCH = f"auto-improve-{dt.date.today():%m%d}"
-            sh("git", "checkout", "-B", BRANCH, "origin/main")
-            sh("git", "checkout", f"origin/{old}", "--", ".auto-improve", check=False)
-            print(f"main 和 {old} 冲突，改用新分支 {BRANCH}")
-    else:
-        sh("git", "checkout", "-B", BRANCH, "origin/main")
+            conflicted = sh("git", "diff", "--name-only", "--diff-filter=U", check=False).stdout.split()
+            for f in conflicted:
+                if f.startswith(".auto-improve/"):
+                    sh("git", "checkout", "--ours", "--", f, check=False)
+                    sh("git", "add", f, check=False)
+            if sh("git", "diff", "--name-only", "--diff-filter=U", check=False).stdout.strip():
+                sh("git", "merge", "--abort", check=False)
+                return False, "和别人刚改的 main 冲突，没合并"
+            sh("git", "commit", "--no-edit", check=False)
+        tc = os.environ.get("TEST_CMD", "").strip()
+        if tc:
+            t = subprocess.run(tc, shell=True, capture_output=True, text=True)
+            if t.returncode != 0:
+                print("测试没通过，不合并：", (t.stdout + t.stderr)[-1500:], flush=True)
+                return False, "测试没通过，没合并"
+            sh("git", "add", "-A", "--", ".", ":!.github", ":!**/node_modules/**", ":!**/__pycache__/**", ":!**/.pytest_cache/**", ":!**/.env", check=False)
+            sh("git", "commit", "-m", "测试生成的文件", check=False)
+        if sh("git", "push", "origin", "HEAD:main", check=False).returncode == 0:
+            return True, "✅ 测试通过，已自动合并到 main"
+    return False, "main 一直在变，推了 3 次没推上，没合并"
 
 
 def load_spend():
@@ -233,24 +261,17 @@ def main():
     sh("git", "add", "-A", "--", ".", ":!.github", ":!**/node_modules/**", ":!**/__pycache__/**", ":!**/.pytest_cache/**", ":!**/.env")
     changed_code = bool(sh("git", "diff", "--cached", "--name-only", "--", ".", ":!.auto-improve").stdout.strip())
     sh("git", "commit", "-m", f"auto-improve {dt.date.today()}: ${cost:.2f}", check=False)
-    sh("git", "push", "-u", "origin", BRANCH)
+    sh("git", "push", "-f", "-u", "origin", BRANCH, check=False)
     branch_differs = bool(sh("git", "diff", "--name-only", "origin/main...HEAD",
                              "--", ".", ":!.auto-improve").stdout.strip())
     merged = ""
     if os.environ.get("AUTO_MERGE") == "1" and branch_differs:
         # 老板说：还没正式上线，测试通过就直接合并到 main，不用等他审核
-        tc = os.environ.get("TEST_CMD", "").strip()
-        ok = True
-        if tc:
-            t = subprocess.run(tc, shell=True, capture_output=True, text=True)
-            ok = t.returncode == 0
-            if not ok:
-                print("测试没通过，不合并：", (t.stdout + t.stderr)[-1500:], flush=True)
-        if ok and sh("git", "push", "origin", "HEAD:main", check=False).returncode == 0:
-            merged = "✅ 测试通过，已自动合并到 main"
+        ok, merged = ship_to_main()
+        if ok:
             branch_differs = False
         else:
-            merged = "⚠️ 测试没通过或合并冲突，这次没合并，改动留在 " + BRANCH + " 分支"
+            merged = "⚠️ " + merged + "，改动留在 " + BRANCH + " 分支（下次运行会从 main 重新开始）"
 
     body = (f"### {dt.date.today()} 报告\n\n{report or '（这次没有写出报告）'}\n\n"
             f"---\n💰 本次花费 **${cost:.2f}**，用了 **{toks:,}** 个 token｜"
