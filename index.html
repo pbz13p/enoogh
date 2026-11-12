@@ -322,7 +322,7 @@ function settle(){
     var nd=fromKey(l.noticed), due=nextSunday(addDays(nd,1));
     if(diffDays(due,t)>=0){l.status='charged';l.chargedOn=key(due);}
   });
-  if(diffDays(cycleEnd(g),t)>0 && !g.finished){
+  if(diffDays(cycleEnd(g),t)>0 && !g.finished && dayStatus(g,cycleEnd(g))!=='late'){
     // final settlement: everything pending is charged at the end
     g.ledger.forEach(function(l){if(l.status==='pending'){l.status='charged';l.chargedOn=key(addDays(cycleEnd(g),1));}});
     g.finished=key(addDays(cycleEnd(g),1));
@@ -683,7 +683,7 @@ function viewToday(){
   var rate=cs.due?Math.round(cs.done/cs.due*100):100, C=2*Math.PI*40;
   var tn=(!cs.due&&p&&p.tasks)?p.tasks.length:0, tdid=tn?p.tasks.filter(function(x,i){return r.tasks&&r.tasks[i];}).length:0, ringPct=cs.due?rate:(tn?Math.round(tdid/tn*100):0);
   var h='<div class="card"><div class="row"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="40" fill="none" stroke="#E4EEEC" stroke-width="9"/><circle cx="48" cy="48" r="40" fill="none" stroke="'+(ringPct>0?'#0E9C8C':'none')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C*ringPct/100+' '+C+'"/></svg><div class="c">'+(cs.due?'<b>'+rate+'%</b><span>完成率</span>':tn?'<b>'+tdid+'/'+tn+'</b><span>今天任务</span>':'<b>—</b><span>完成率</span>')+'</div></div>'+
-  '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+cs.day+' / '+CYCLE_DAYS+' 天</div>'+
+  '<div style="flex:1"><div class="small muted">'+esc(g.name)+(g.pte?' · '+g.pte.now+' → '+g.pte.target:'')+'</div><div style="font-size:20px;font-weight:800;margin:2px 0">第 '+Math.min(cs.day,CYCLE_DAYS)+' / '+CYCLE_DAYS+' 天</div>'+
   '<div class="small muted">承诺金还剩 <b style="color:var(--ink)">'+money(T.left)+'</b> / '+money(g.stake)+'</div>'+(g.pte&&g.pte.exam?(function(){var n=diffDays(t,fromKey(g.pte.exam));return '<div class="small muted">'+(n>0?'距离考试 '+n+' 天':n===0?'今天考试，加油！':'考试已过，计划照常到结营')+'</div>';})():'')+'</div></div>'+weekStrip(g)+progressLine(g)+'</div>';
   var justCard='';
   var just=g.ledger.filter(function(l){if(l.status!=='charged'||!l.chargedOn)return false;var a=diffDays(fromKey(l.chargedOn),t);return a>=0&&a<7;});
@@ -701,6 +701,10 @@ function viewToday(){
     h='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><div class="row between"><b>正在补打卡：'+fmt(t)+'（昨天）</b><button class="btn small ghost" id="lateBack">回到今天</button></div><p class="small" style="margin:6px 0 0">中午 12 点前交上就不算漏练。</p></div>';
   } else if(dayStatus(g,yd)==='late'){
     h+='<div class="card" style="background:var(--sky-tint);border-color:#CFE5F6;box-shadow:none"><b>昨天的打卡还没交</b><p class="small" style="margin:6px 0 10px">「'+esc(g.name)+'」要到今天早上才知道有没有做到，所以给你留到中午 12 点补打卡。过了 12 点就算漏练。</p><button class="btn small primary" id="lateGo">补交昨天的打卡</button></div>';
+  }
+  if(st==='out'){
+    h+='<div class="card tint"><h2>这一期的 28 天到了</h2><p class="muted" style="margin:0">补交完最后一天的打卡，中午 12 点后自动结营，出这一期的成绩。</p></div>';
+    return h+pendCard+justCard;
   }
   if(st==='rest'){
     h+='<div class="card tint"><h2>今天休息 🌿</h2><p class="muted" style="margin:0">'+(t.getDay()===0?'今天周日，可以去「计划」看本周复盘、调整下周计划。':'好好休息，明天继续。')+'</p>'+(function(){for(var i=1;i<=7;i++){var nd=addDays(t,i),np=planFor(g,nd);if(np.days.indexOf(nd.getDay())>=0&&np.tasks.length){return '<div class="small" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)"><b>'+(i===1?'明天':'周'+'日一二三四五六'[nd.getDay()])+' '+esc(np.time)+' 要做：</b><br>'+np.tasks.map(function(x){return esc(x.name)+' '+x.qty+esc(x.unit);}).join('<br>')+'</div>';}}return '';})()+'</div>';

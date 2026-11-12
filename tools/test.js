@@ -362,5 +362,9 @@ ok(code.includes('data-eday=') && code.includes("toast('至少选一天')"), '�
   ok(/id="submitDay" >/.test(h) || /id="submitDay" (?!disabled)/.test(h), '勾了承诺就能打卡'); }
 { const sh = goal(); sh.goal.mode = 'hard'; sh.goal.pay = 'prepay'; sh.ui.tab = 'money'; const h = run(sh, '2026-11-12').html;
   ok(!h.includes('可申诉') && h.includes('结营时能退回给你的承诺金'), '硬核模式不写“可申诉”；预付写“能退回给你”'); }
+{ const sl = goal(); sl.goal.type = 'custom'; sl.goal.tpl = 'sleep'; sl.goal.plans[0].plan.days = [0,1,2,3,4,5,6];
+  for (let i = 0; i < 27; i++) { const d = new Date(2026, 10, 9 + i); sl.goal.days[d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')] = { done: true }; }
+  const m = run(JSON.parse(JSON.stringify(sl)), '2026-12-07', '09:00'); ok(!m.saved.goal.finished && m.html.includes('补交昨天的打卡') && m.html.includes('28 天到了') && !m.html.includes('第 29') && !m.html.includes('今天的任务'), '早睡最后一天：次日上午还能补，先不结营，页面不出现第 29 天');
+  const n = run(JSON.parse(JSON.stringify(sl)), '2026-12-07', '13:00'); ok(n.saved.goal.finished && n.saved.goal.ledger.some(l => l.day === '2026-12-06' && l.status === 'charged'), '早睡最后一天：过了中午没补就算漏练再结营'); }
 console.log(`${passed} 项通过，${failed} 项失败`);
 if (failed) process.exit(1);
