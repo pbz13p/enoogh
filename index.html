@@ -446,7 +446,7 @@ function stepWelcome(){
   '<p class="small muted" style="margin-top:4px;text-align:center">换了手机？<a href="#" id="bkInW">从备份恢复</a></p>'+
   '<div class="card faq" style="margin-top:16px"><h3 style="margin:0 0 4px">常见问题</h3>'+[
     ['现在会真的扣钱吗？','不会。现在是演示版，不连接任何付款，可以放心试。'],
-    ['扣下的钱去哪了？','100% 捐给你选的孤独症慈善机构（Amaze 或 Aspect），正式版会把捐款收据发给你。平台只收一次服务费。'],
+    ['扣下的钱去哪了？','100% 捐给你选的孤独症慈善机构（Amaze 或 Aspect），正式版每月公开捐款收据。平台只收一次服务费。'],
     ['生病或有急事怎么办？','普通模式每期有 2 次申诉机会，通过就不扣。'],
     ['我的数据存在哪？','只存在你这台手机的浏览器里，不上传。换手机前可以导出备份。']
   ].map(function(q){return '<details><summary>'+q[0]+'</summary><p>'+q[1]+'</p></details>';}).join('')+'</div>';
@@ -520,7 +520,7 @@ function stepStake(D){
   h+='<div class="card"><h3>付款方式</h3><div class="stack">'+
   '<button class="opt '+(D.pay==='card'?'on':'')+'" data-pay="card"><div class="row between"><div class="t">绑卡，漏练才扣</div><span class="chip brand">推荐</span></div><div class="d">现在只付服务费。漏练的金额每周日合并扣一次，扣前 24 小时通知你。</div></button>'+
   '<button class="opt '+(D.pay==='prepay'?'on':'')+'" data-pay="prepay"><div class="t">预付承诺金</div><div class="d">微信支付 / 支付宝 / 银行转账先交 '+money(D.stake)+'，结营后 3 个工作日内退回剩余部分。</div></button></div></div>';
-  h+='<div class="card"><h3>扣下的钱捐给谁</h3><div class="stack">'+CHARITIES.map(function(c){return '<button class="opt '+(D.charity===c.id?'on':'')+'" data-charity="'+c.id+'"><div class="t">'+c.name+'</div><div class="d">'+c.d+'</div></button>';}).join('')+'</div><p class="small muted" style="margin:10px 0 0">每月汇总捐出一次。正式版会把捐款收据发给每个被扣款的人。</p></div>';
+  h+='<div class="card"><h3>扣下的钱捐给谁</h3><div class="stack">'+CHARITIES.map(function(c){return '<button class="opt '+(D.charity===c.id?'on':'')+'" data-charity="'+c.id+'"><div class="t">'+c.name+'</div><div class="d">'+c.d+'</div></button>';}).join('')+'</div><p class="small muted" style="margin:10px 0 0">每月汇总捐出一次。正式版每月公开捐款收据，并告诉你你的钱在哪一笔里（这笔钱不能用来抵税）。</p></div>';
   h+='<div class="row"><button class="btn ghost" data-back>上一步</button><button class="btn primary" style="flex:1" data-next>下一步</button></div>';
   return h;
 }
@@ -952,7 +952,7 @@ function viewMoney(){
   var shown=g.ledger.filter(function(l){return l.status!=='void'||(g.days[l.day]&&g.days[l.day].excused);});
   h+='<div class="card"><h2>扣款记录</h2>'+(shown.length?shown.slice().reverse().map(function(l){var ap=l.status==='void';return '<div class="kv"><span>'+fmtLong(fromKey(l.day))+' 漏练</span><b>'+(ap?'<s class="muted">'+money(l.amt||perMiss(g))+'</s>':money(l.amt))+' <span class="chip '+(ap?'sky':l.status==='charged'?'grey':'bad')+'">'+(ap?'已申诉 · 不扣':l.status==='charged'?'已扣 '+fmt(fromKey(l.chargedOn)):'待扣')+'</span></b></div>';}).join(''):'<p class="small muted" style="margin:0">还没有扣过钱。保持住！</p>')+'</div>';
   h+='<div class="card faq"><h2>常见问题</h2>'+[
-    ['扣下的钱去哪了？','100% 捐给你选的 '+esc(ch.name)+'，每月汇总捐一次，正式版会把捐款收据发给你。我们不留一分。'],
+    ['扣下的钱去哪了？','100% 捐给你选的 '+esc(ch.name)+'，每月汇总捐一次，正式版每月公开收据。我们不留一分。'],
     ['平台收多少钱？','只收一次服务费，本期 '+money(g.fee)+'，开始时收、不退。这是我们唯一的收入，所以我们最希望的是你做到。'],
     ['什么时候扣、扣多少？','漏练一天扣承诺金的 1/20（你是 '+money(perMiss(g))+'）。第二天先通知你，满 24 小时后'+(g.pay==='prepay'?'，在周日从你预付的承诺金里合并扣一次；结营后 3 个工作日内把剩下的退给你。':'，在周日合并扣一次；最多扣到承诺金为止。')],
     ['生病或有急事怎么办？','普通模式每期有 2 次机会：当天点「报备」，或漏练后在待扣款卡上「申诉」，通过就不扣。硬核模式不能申诉。'],
