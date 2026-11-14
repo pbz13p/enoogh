@@ -27,7 +27,9 @@ BRANCH = "auto-improve"
 REPO = os.environ.get("GITHUB_REPOSITORY", "local/test")
 CAP = float(os.environ.get("TOTAL_CAP_USD", "20"))
 DEADLINE = dt.datetime.fromisoformat(os.environ.get("DEADLINE", "2026-11-14T18:00:00+00:00"))
-RUNS_PER_DAY = int(os.environ.get("RUNS_PER_DAY", "2"))
+RUNS_PER_DAY = float(os.environ.get("RUNS_PER_DAY", "2"))
+# 督导 11/14：额度每月续期，只算本期（MONTH_START 之后）的花费
+MONTH_START = dt.datetime.fromisoformat(os.environ.get("MONTH_START", "2026-11-14T00:00:00+00:00"))
 MODEL = os.environ.get("MODEL", "claude-sonnet-5-5")
 MIN_RUN, MAX_RUN = 0.5, float(os.environ.get("MAX_RUN_USD", "4"))
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
@@ -95,12 +97,13 @@ def load_spend():
 
 def run_budget(spend):
     now = dt.datetime.now(dt.timezone.utc)
-    left = CAP - spend["total_usd"]
+    spent = sum(r.get("usd", 0) for r in spend.get("runs", []) if dt.datetime.fromisoformat(r["at"]) >= MONTH_START)
+    left = CAP - spent
     hours_left = (DEADLINE - now).total_seconds() / 3600
     if hours_left <= 0:
         return 0, "已过截止时间"
     if left < MIN_RUN:
-        return 0, f"本月预算已用完（已花 ${spend['total_usd']:.2f} / ${CAP:.2f}）"
+        return 0, f"本月预算已用完（本期已花 ${spent:.2f} / ${CAP:.2f}）"
     runs_left = max(1, int(hours_left / 24 * RUNS_PER_DAY))
     return min(MAX_RUN, max(MIN_RUN, left / runs_left)), f"剩余 ${left:.2f}，还有约 {runs_left} 次运行"
 
