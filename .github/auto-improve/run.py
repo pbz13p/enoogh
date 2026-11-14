@@ -238,6 +238,23 @@ def preflight():
             print(f"preflight {name}: {e}", flush=True)
 
 
+def idle_guard(spend):
+    """督导 11/15：防空跑。离上一轮太近、或最近两轮都没改代码，就不调用模型，一分钱不花。"""
+    runs = spend.get("runs", [])
+    if not runs or os.environ.get("FORCE") == "1":
+        return ""
+    now = dt.datetime.now(dt.timezone.utc)
+    last = dt.datetime.fromisoformat(runs[-1]["at"])
+    gap_h = (now - last).total_seconds() / 3600
+    min_gap = float(os.environ.get("MIN_GAP_HOURS", str(round(24 / max(RUNS_PER_DAY, 1) * 0.75, 2))))
+    if gap_h < min_gap:
+        return f"离上一轮只有 {gap_h:.1f} 小时（至少要隔 {min_gap} 小时），跳过"
+    recent = runs[-2:]
+    if len(recent) == 2 and all(r.get("changed") is False for r in recent) and gap_h < 24:
+        return "最近两轮都没改代码（没活干），休息到离上一轮满 24 小时再说"
+    return ""
+
+
 def main():
     if not DRY_RUN:
         prepare_branch()
@@ -245,6 +262,10 @@ def main():
     budget, why = run_budget(spend)
     print(f"[{REPO}] 本次预算 ${budget:.2f}（{why}）", flush=True)
     if budget <= 0:
+        return
+    idle = idle_guard(spend)
+    if idle:
+        print(f"[{REPO}] {idle}", flush=True)
         return
     if DRY_RUN:
         return
@@ -258,6 +279,8 @@ def main():
     spend["runs"].append({"at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
                           "usd": round(cost, 4), "tokens": toks,
                           "status": getattr(result, "subtype", "unknown")})
+    sh("git", "add", "-A", "--", ".", ":!.github", ":!**/node_modules/**", ":!**/__pycache__/**", ":!**/.pytest_cache/**", ":!**/.env")
+    spend["runs"][-1]["changed"] = bool(sh("git", "diff", "--cached", "--name-only", "--", ".", ":!.auto-improve").stdout.strip())
     STATE_DIR.mkdir(exist_ok=True)
     SPEND_FILE.write_text(json.dumps(spend, indent=1, ensure_ascii=False))
 
